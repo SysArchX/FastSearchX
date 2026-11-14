@@ -1,17 +1,17 @@
-name: iOS (.ipa sem assinatura)
+name: iOS (unsigned .ipa)
 
-# Gera um .ipa do app Flutter (pasta app/) num runner macOS do GitHub Actions.
-# O .ipa sai SEM assinatura: para instalar no iPhone, reassine com o seu Apple ID
+# Produces an .ipa of the Flutter app (app/ folder) on a macOS GitHub Actions runner.
+# The .ipa comes out UNSIGNED: to install it on the iPhone, re-sign it with your Apple ID
 # usando Sideloadly, AltStore, Xcode (janela Devices) ou similar.
 on:
   workflow_dispatch:
     inputs:
       flutter_version:
-        description: "Versão do Flutter"
+        description: "Flutter version"
         required: false
         default: "3.47.9"
       build_name:
-        description: "Nome do build (versionName)"
+        description: "Build name (versionName)"
         required: false
         default: "2.0.0"
 
@@ -29,30 +29,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Mostrar ambiente
+      - name: Show environment
         run: |
           sw_vers
           xcodebuild -version
           pod --version
 
-      - name: Instalar Flutter
+      - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ inputs.flutter_version }}
           channel: stable
           cache: true
 
-      - name: Dependências
+      - name: Dependencies
         working-directory: app
         run: |
           flutter --version
           flutter pub get
 
-      - name: Build iOS (sem assinatura)
+      - name: Build iOS (unsigned)
         working-directory: app
         run: flutter build ios --release --no-codesign
 
-      - name: Empacotar .ipa
+      - name: Package .ipa
         working-directory: app
         run: |
           set -eux

@@ -1,5 +1,5 @@
 name: fastsearchx_app
-description: "FastSearchX — navegador e baixador de vídeos/músicas (Android/iOS)."
+description: "FastSearchX — browser and video/music downloader (Android/iOS)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -93,7 +93,7 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-# Patch local: AGP recente não aceita mais getDefaultProguardFile('proguard-android.txt').
+# Local patch: recent AGP no longer accepts getDefaultProguardFile('proguard-android.txt').
 dependency_overrides:
   flutter_inappwebview_android:
     path: third_party/flutter_inappwebview_android

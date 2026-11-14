@@ -1,12 +1,12 @@
-"""Localiza e importa a versão do yt-dlp que será utilizada pelo aplicativo.
+"""Locates and imports the yt-dlp version used by the application.
 
-Ordem de preferência:
+Preference order:
 
-1. ``FASTSEARCHX_VENDOR`` (variável de ambiente, útil para testes);
-2. ``~/.local/share/fastsearchx/vendor`` (versão atualizada pelo usuário);
-3. ``/usr/lib/fastsearchx/vendor`` (versão embutida no pacote .deb);
-4. ``vendor/`` ao lado do código-fonte (execução em modo de desenvolvimento);
-5. yt-dlp instalado no sistema.
+1. ``FASTSEARCHX_VENDOR`` (environment variable, useful for tests);
+2. ``~/.local/share/fastsearchx/vendor`` (version updated by the user);
+3. ``/usr/lib/fastsearchx/vendor`` (version bundled in the .deb package);
+4. ``vendor/`` next to the source code (development mode);
+5. yt-dlp installed on the system.
 """
 
 from __future__ import annotations
@@ -58,17 +58,17 @@ _VENDOR_PATH = _setup_path()
 
 QJS_PATH = _find_qjs()
 
-import yt_dlp  # noqa: E402  (precisa vir depois do ajuste do sys.path)
+import yt_dlp  # noqa: E402  (must come after the sys.path adjustment)
 
 YTDLP_VERSION: str = yt_dlp.version.__version__
 
 if _VENDOR_PATH:
     user_vendor = str(Path.home() / ".local" / "share" / "fastsearchx" / "vendor")
     if _VENDOR_PATH == user_vendor:
-        YTDLP_ORIGIN = "atualizado pelo usuário"
+        YTDLP_ORIGIN = "updated by the user"
     elif _VENDOR_PATH.startswith("/usr/lib/fastsearchx"):
         YTDLP_ORIGIN = "embutido no aplicativo"
     else:
-        YTDLP_ORIGIN = "modo de desenvolvimento"
+        YTDLP_ORIGIN = "development mode"
 else:
-    YTDLP_ORIGIN = "instalado no sistema"
+    YTDLP_ORIGIN = "installed on the system"

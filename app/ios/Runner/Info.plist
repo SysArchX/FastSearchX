@@ -66,12 +66,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<!-- Downloads visíveis no app Arquivos (No meu iPhone → FastSearchX) -->
+	<!-- Downloads visible in the Files app (On My iPhone -> FastSearchX) -->
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
-	<!-- Permite abrir sites/arquivos em HTTP simples, como usesCleartextTraffic no Android -->
+	<!-- Allows opening sites/files over plain HTTP, like usesCleartextTraffic on Android -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

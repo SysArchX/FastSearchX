@@ -1,24 +1,24 @@
-# FastSearchX — app Flutter (Android/iOS)
+# FastSearchX — Flutter app (Android/iOS)
 
-Código-fonte do aplicativo móvel do **FastSearchX**: navegador completo com
-detecção de mídia e downloader (MP3/MP4) usando FFmpeg e yt-dlp via API.
+Source code of the **FastSearchX** mobile app: a full browser with
+media detection and a downloader (MP3/MP4) using FFmpeg and yt-dlp through an API.
 
-- Android: navegador + downloads em `Download/FastSearchX/`, pode ser definido
-  como navegador padrão (`http`/`https`).
-- iOS: WKWebView com detecção de vídeo/áudio e downloader; veja
-  [`IOS.md`](IOS.md) para gerar o `.ipa` sem assinatura.
+- Android: browser + downloads in `Download/FastSearchX/`, can be set as the
+  default browser (`http`/`https`).
+- iOS: WKWebView with video/audio detection and a downloader; see
+  [`IOS.md`](IOS.md) to produce the unsigned `.ipa`.
 
-## Desenvolvimento
+## Development
 
 ```bash
 flutter pub get
 flutter run
 ```
 
-## Build Android (assinado)
+## Android build (signed)
 
-Coloque o keystore em `android/keystore/` e crie `android/key.properties`
-(ambos ignorados pelo git):
+Put the keystore in `android/keystore/` and create `android/key.properties`
+(both are git-ignored):
 
 ```properties
 storePassword=...
@@ -28,14 +28,14 @@ storeFile=keystore/fastsearchx-release.jks
 ```
 
 ```bash
-flutter build apk --release --split-per-abi   # APKs por arquitetura
-flutter build apk --release                   # APK universal
+flutter build apk --release --split-per-abi   # per-architecture APKs
+flutter build apk --release                   # universal APK
 ```
 
-O `android/app/build.gradle.kts` empacota as bibliotecas nativas **sem
-compressão** (`useLegacyPackaging = false`). Isso é proposital: com as `.so`
-comprimidas o instalador precisa extrair centenas de MB e muitos aparelhos
-mostram *“houve um problema ao analisar o pacote”*.
+`android/app/build.gradle.kts` packages the native libraries **uncompressed**
+(`useLegacyPackaging = false`). That is intentional: with compressed `.so`
+files the installer has to extract hundreds of MB and many devices show
+*"there was a problem parsing the package"*.
 
 ## iOS
 
@@ -43,5 +43,5 @@ mostram *“houve um problema ao analisar o pacote”*.
 flutter build ios --release --no-codesign
 ```
 
-O workflow do GitHub Actions em `.github/workflows/ios-ipa.yml` gera o `.ipa`
-sem assinatura.
+The GitHub Actions workflow in `.github/workflows/ios-ipa.yml` produces the
+unsigned `.ipa`.

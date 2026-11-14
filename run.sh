@@ -1,9 +1,9 @@
 #!/bin/sh
-# Executa o aplicativo a partir do código-fonte (modo de desenvolvimento).
+# Runs the app from source (development mode).
 set -eu
 cd "$(dirname "$0")"
 
-# Baixa o yt-dlp e o QuickJS-ng embutidos na primeira execução.
+# Downloads the bundled yt-dlp and QuickJS-ng on the first run.
 if [ ! -f vendor/yt_dlp/__init__.py ] || [ ! -x data/bin/qjs ]; then
     ./packaging/fetch-deps.sh
 fi

@@ -1,4 +1,4 @@
-"""Interface gráfica (GTK3) do FastSearchX."""
+"""FastSearchX graphical interface (GTK3)."""
 
 from __future__ import annotations
 
@@ -83,7 +83,7 @@ def _default_download_dir() -> str:
 
 def _load_config() -> dict:
     if not CONFIG_FILE.exists():
-        # Migra as preferências das versões antigas (baixador-yt e TubeFetch).
+        # Migrates preferences from older versions (baixador-yt and TubeFetch).
         for legacy in (PREVIOUS_CONFIG_FILE, LEGACY_CONFIG_FILE):
             if legacy.is_file():
                 try:
@@ -183,7 +183,7 @@ class MainWindow(Gtk.ApplicationWindow):
             self.set_url(initial_url)
 
     # ------------------------------------------------------------------
-    # Construção da interface
+    # Building the interface
     # ------------------------------------------------------------------
     def _build_header(self) -> None:
         header = Gtk.HeaderBar()
@@ -194,17 +194,17 @@ class MainWindow(Gtk.ApplicationWindow):
 
         menu = Gtk.Menu()
 
-        open_item = Gtk.MenuItem(label="Abrir pasta de downloads")
+        open_item = Gtk.MenuItem(label="Open downloads folder")
         open_item.connect("activate", self._open_destination)
         menu.append(open_item)
 
-        update_item = Gtk.MenuItem(label="Atualizar yt-dlp")
+        update_item = Gtk.MenuItem(label="Update yt-dlp")
         update_item.connect("activate", self._update_ytdlp)
         menu.append(update_item)
 
         menu.append(Gtk.SeparatorMenuItem())
 
-        about_item = Gtk.MenuItem(label="Sobre")
+        about_item = Gtk.MenuItem(label="About")
         about_item.connect("activate", self._show_about)
         menu.append(about_item)
         menu.show_all()
@@ -228,7 +228,7 @@ class MainWindow(Gtk.ApplicationWindow):
         url_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
         self.url_entry = Gtk.Entry()
         self.url_entry.set_placeholder_text(
-            "Cole aqui o link do vídeo ou da playlist..."
+            "Paste the video or playlist link here..."
         )
         self.url_entry.set_hexpand(True)
         self.url_entry.get_style_context().add_class("url-entry")
@@ -237,16 +237,16 @@ class MainWindow(Gtk.ApplicationWindow):
         url_box.pack_start(self.url_entry, True, True, 0)
 
         paste_button = Gtk.Button(label="Colar")
-        paste_button.set_tooltip_text("Colar link da área de transferência")
+        paste_button.set_tooltip_text("Paste link from the clipboard")
         paste_button.connect("clicked", self._paste_url)
         url_box.pack_start(paste_button, False, False, 0)
         content.pack_start(url_box, False, False, 0)
 
         # Formato ------------------------------------------------------
         format_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        self.video_radio = Gtk.RadioButton.new_with_label(None, "Vídeo (MP4)")
+        self.video_radio = Gtk.RadioButton.new_with_label(None, "Video (MP4)")
         self.audio_radio = Gtk.RadioButton.new_with_label_from_widget(
-            self.video_radio, "Música (MP3)"
+            self.video_radio, "Music (MP3)"
         )
         self.video_radio.connect("toggled", self._on_mode_toggled)
         self.audio_radio.connect("toggled", self._on_mode_toggled)
@@ -264,19 +264,19 @@ class MainWindow(Gtk.ApplicationWindow):
 
         # Playlist -----------------------------------------------------
         playlist_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        self.playlist_check = Gtk.CheckButton(label="Baixar playlist inteira")
+        self.playlist_check = Gtk.CheckButton(label="Download the whole playlist")
         self.playlist_check.connect("toggled", self._on_playlist_toggled)
         playlist_box.pack_start(self.playlist_check, False, False, 0)
 
         self.items_revealer = Gtk.Revealer()
         self.items_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_LEFT)
         items_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        items_box.pack_start(Gtk.Label(label="Itens:"), False, False, 0)
+        items_box.pack_start(Gtk.Label(label="Items:"), False, False, 0)
         self.items_entry = Gtk.Entry()
         self.items_entry.set_width_chars(20)
         self.items_entry.set_placeholder_text("ex.: 1-10, 15")
         self.items_entry.set_tooltip_text(
-            "Opcional. Baixe apenas alguns itens da playlist."
+            "Optional. Download only some items from the playlist."
         )
         items_box.pack_start(self.items_entry, False, False, 0)
         self.items_revealer.add(items_box)
@@ -285,16 +285,16 @@ class MainWindow(Gtk.ApplicationWindow):
         self.metadata_check = Gtk.CheckButton(label="Incorporar metadados")
         self.metadata_check.set_active(True)
         self.metadata_check.set_tooltip_text(
-            "Adiciona título, artista e outras informações ao arquivo."
+            "Adds title, artist and other information to the file."
         )
         playlist_box.pack_end(self.metadata_check, False, False, 0)
         content.pack_start(playlist_box, False, False, 0)
 
-        # Destino ------------------------------------------------------
+        # Destination --------------------------------------------------
         destination_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        destination_box.pack_start(Gtk.Label(label="Salvar em:"), False, False, 0)
+        destination_box.pack_start(Gtk.Label(label="Save to:"), False, False, 0)
         self.dest_button = Gtk.FileChooserButton(
-            title="Escolher pasta de destino",
+            title="Choose destination folder",
             action=Gtk.FileChooserAction.SELECT_FOLDER,
         )
         self.dest_button.set_hexpand(True)
@@ -306,21 +306,21 @@ class MainWindow(Gtk.ApplicationWindow):
             Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 2
         )
 
-        # Ações --------------------------------------------------------
+        # Actions ------------------------------------------------------
         action_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.download_button = Gtk.Button(label="Baixar")
+        self.download_button = Gtk.Button(label="Download")
         self.download_button.set_size_request(140, 42)
         self.download_button.get_style_context().add_class("suggested-action")
         self.download_button.get_style_context().add_class("download-button")
         self.download_button.connect("clicked", self._on_download_clicked)
         action_box.pack_start(self.download_button, False, False, 0)
 
-        self.cancel_button = Gtk.Button(label="Cancelar")
+        self.cancel_button = Gtk.Button(label="Cancel")
         self.cancel_button.set_no_show_all(True)
         self.cancel_button.connect("clicked", self._on_cancel_clicked)
         action_box.pack_start(self.cancel_button, False, False, 0)
 
-        open_button = Gtk.Button(label="Abrir pasta")
+        open_button = Gtk.Button(label="Open folder")
         open_button.connect("clicked", self._open_destination)
         action_box.pack_end(open_button, False, False, 0)
         content.pack_start(action_box, False, False, 0)
@@ -328,12 +328,12 @@ class MainWindow(Gtk.ApplicationWindow):
         # Progresso ----------------------------------------------------
         self.progress = Gtk.ProgressBar()
         self.progress.set_show_text(True)
-        self.progress.set_text("Pronto")
+        self.progress.set_text("Ready")
         self.progress.set_fraction(0.0)
         content.pack_start(self.progress, False, False, 0)
 
         self.status_label = Gtk.Label(
-            label="Cole um link do YouTube para começar.", xalign=0
+            label="Paste a YouTube link to get started.", xalign=0
         )
         self.status_label.set_ellipsize(Pango.EllipsizeMode.END)
         self.status_label.get_style_context().add_class("status-label")
@@ -368,7 +368,7 @@ class MainWindow(Gtk.ApplicationWindow):
         return label
 
     # ------------------------------------------------------------------
-    # Configuração inicial
+    # Initial setup
     # ------------------------------------------------------------------
     def _apply_config(self) -> None:
         if not os.path.isdir(self._destination):
@@ -465,12 +465,12 @@ class MainWindow(Gtk.ApplicationWindow):
 
         url = self.url_entry.get_text().strip()
         if not url:
-            self._show_error("Link vazio", "Cole o link de um vídeo ou playlist do YouTube.")
+            self._show_error("Empty link", "Paste the link of a YouTube video or playlist.")
             return
         if not re.match(r"^https?://", url, re.IGNORECASE):
             self._show_error(
-                "Link inválido",
-                "O link precisa começar com http:// ou https://.",
+                "Invalid link",
+                "The link must start with http:// or https://.",
             )
             return
 
@@ -478,8 +478,8 @@ class MainWindow(Gtk.ApplicationWindow):
         playlist_items = self.items_entry.get_text().strip()
         if playlist and playlist_items and not re.fullmatch(r"[0-9,\-\s]+", playlist_items):
             self._show_error(
-                "Itens inválidos",
-                "Use apenas números, vírgulas e hífens. Exemplo: 1-10, 15",
+                "Invalid items",
+                "Use only numbers, commas and hyphens. Example: 1-10, 15",
             )
             return
 
@@ -487,14 +487,14 @@ class MainWindow(Gtk.ApplicationWindow):
             try:
                 os.makedirs(self._destination, exist_ok=True)
             except OSError as exc:
-                self._show_error("Pasta inválida", f"Não foi possível criar a pasta:\n{exc}")
+                self._show_error("Invalid folder", f"Could not create the folder:\n{exc}")
                 return
 
         if not ffmpeg_available():
             self._show_error(
-                "ffmpeg não encontrado",
-                "O ffmpeg é necessário para juntar vídeo e áudio e para "
-                "converter o áudio em MP3.\n\n"
+                "ffmpeg not found",
+                "ffmpeg is required to merge video and audio and to "
+                "convert audio to MP3.\n\n"
                 "Instale com:\n    sudo apt install ffmpeg",
             )
             return
@@ -502,7 +502,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self._save_current_config()
         self._log_clear()
         self._append_log(f"Link: {url}")
-        self._append_log(f"Destino: {self._destination}")
+        self._append_log(f"Destination: {self._destination}")
         self._append_log(
             "Formato: "
             + ("MP3" if self._mode == "audio" else "MP4")
@@ -510,7 +510,7 @@ class MainWindow(Gtk.ApplicationWindow):
             + (self.quality_combo.get_active_id() or "")
         )
         if playlist:
-            self._append_log("Playlist: completa" + (f" (itens {playlist_items})" if playlist_items else ""))
+            self._append_log("Playlist: full" + (f" (items {playlist_items})" if playlist_items else ""))
 
         self.progress.set_fraction(0.0)
         self.progress.set_text("Iniciando...")
@@ -564,9 +564,9 @@ class MainWindow(Gtk.ApplicationWindow):
         index = payload.get("index")
         count = payload.get("count")
         title = payload.get("title") or ""
-        phase = payload.get("phase") or "Baixando"
+        phase = payload.get("phase") or "Downloading"
         if index and count:
-            text = f"Item {index} de {count} · {phase}"
+            text = f"Item {index} of {count} · {phase}"
             if title:
                 text += f" — {title}"
             self.status_label.set_text(text)
@@ -598,16 +598,16 @@ class MainWindow(Gtk.ApplicationWindow):
             self.progress.set_fraction(1.0)
             self.progress.set_text("100%")
             self.status_label.set_text(message)
-            self._notify("Download concluído", f"Arquivos salvos em {self._destination}")
+            self._notify("Download finished", f"Files saved in {self._destination}")
         else:
             self.status_label.set_text(message)
             if "cancelado" in message.lower():
                 self.progress.set_fraction(0.0)
                 self.progress.set_text("Cancelado")
             else:
-                self.progress.set_text("Falhou")
+                self.progress.set_text("Failed")
                 self.log_expander.set_expanded(True)
-                self._show_error("Não foi possível baixar", message[:700])
+                self._show_error("Could not download", message[:700])
         return False
 
     def _set_running(self, running: bool) -> None:
@@ -656,7 +656,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.log_view.scroll_to_iter(end, 0.0, False, 0.0, 0.0)
 
     # ------------------------------------------------------------------
-    # Ações do menu
+    # Menu actions
     # ------------------------------------------------------------------
     def _open_destination(self, *_args) -> None:
         try:
@@ -665,16 +665,16 @@ class MainWindow(Gtk.ApplicationWindow):
                 Path(self._destination).as_uri(), None
             )
         except Exception as exc:
-            self._show_error("Não foi possível abrir a pasta", str(exc))
+            self._show_error("Could not open the folder", str(exc))
 
     def _update_ytdlp(self, *_args) -> None:
         if self._updating_ytdlp:
             return
         if not self._confirm(
-            "Atualizar yt-dlp?",
-            "O aplicativo vai baixar a versão mais recente do yt-dlp para a sua "
-            "pasta de usuário. É necessário estar conectado à internet.\n\n"
-            "O download atual usa a versão embutida "
+            "Update yt-dlp?",
+            "The app will download the latest yt-dlp version into your "
+            "user folder. An internet connection is required.\n\n"
+            "The current download uses the bundled version "
             f"{YTDLP_VERSION}.",
         ):
             return
@@ -719,29 +719,29 @@ class MainWindow(Gtk.ApplicationWindow):
     def _on_ytdlp_update_done(self, success: bool, error: str) -> bool:
         self._updating_ytdlp = False
         if not success:
-            self.status_label.set_text("Falha ao atualizar o yt-dlp.")
+            self.status_label.set_text("Failed to update yt-dlp.")
             self.log_expander.set_expanded(True)
             self._show_error(
-                "Falha ao atualizar o yt-dlp",
-                error or "Verifique a conexão com a internet e os detalhes.",
+                "Failed to update yt-dlp",
+                error or "Check the internet connection and the details.",
             )
             return False
 
         target = Path(GLib.get_user_data_dir()) / "fastsearchx" / "vendor"
-        version = _vendor_version(target) or "mais recente"
-        self.status_label.set_text(f"yt-dlp {version} instalado. Reinicie o aplicativo.")
+        version = _vendor_version(target) or "latest"
+        self.status_label.set_text(f"yt-dlp {version} installed. Restart the app.")
         dialog = Gtk.MessageDialog(
             transient_for=self,
             modal=True,
             message_type=Gtk.MessageType.INFO,
             buttons=Gtk.ButtonsType.NONE,
-            text=f"yt-dlp {version} foi baixado.",
+            text=f"yt-dlp {version} has been downloaded.",
         )
         dialog.format_secondary_text(
-            "Feche e abra o aplicativo novamente para usar a nova versão."
+            "Close and reopen the app to use the new version."
         )
-        dialog.add_button("Depois", Gtk.ResponseType.CLOSE)
-        restart = dialog.add_button("Reiniciar agora", Gtk.ResponseType.OK)
+        dialog.add_button("Later", Gtk.ResponseType.CLOSE)
+        restart = dialog.add_button("Restart now", Gtk.ResponseType.OK)
         restart.get_style_context().add_class("suggested-action")
         response = dialog.run()
         dialog.destroy()

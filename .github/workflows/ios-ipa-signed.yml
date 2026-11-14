@@ -1,19 +1,19 @@
 name: iOS (.ipa assinado)
 
-# Gera um .ipa JÁ ASSINADO usando o seu certificado de distribuição Apple.
+# Produces an ALREADY SIGNED .ipa using your Apple distribution certificate.
 #
-# Secrets necessários (Settings → Secrets and variables → Actions):
+# Required secrets (Settings → Secrets and variables → Actions):
 #   IOS_CERT_P12           certificado .p12 em base64   (base64 -i cert.p12 | pbcopy)
 #   IOS_CERT_PASSWORD      senha do .p12
 #   IOS_PROFILE            provisioning profile .mobileprovision em base64
-#   IOS_KEYCHAIN_PASSWORD  senha qualquer, só para o keychain temporário do runner
+#   IOS_KEYCHAIN_PASSWORD  any password, only for the runner's temporary keychain
 #
-# Nunca envie o .p12 por chat: coloque direto nos Secrets do repositório.
+# Never send the .p12 over chat: put it directly in the repository secrets.
 on:
   workflow_dispatch:
     inputs:
       export_method:
-        description: "Método de distribuição"
+        description: "Distribution method"
         type: choice
         options: [ad-hoc, development, app-store]
         default: ad-hoc
@@ -25,7 +25,7 @@ on:
         description: "Team ID (Apple Developer → Membership)"
         required: true
       profile_name:
-        description: "Nome exato do provisioning profile"
+        description: "Exact provisioning profile name"
         required: true
 
 concurrency:
@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   build-signed-ipa:
-    name: Build + assinatura (${{ inputs.export_method }})
+    name: Build + signing (${{ inputs.export_method }})
     runs-on: macos-latest
     timeout-minutes: 90
 
@@ -94,14 +94,14 @@ jobs:
           DEVICES=$(/usr/libexec/PlistBuddy -c 'Print :ProvisionedDevices' /tmp/profile.plist 2>/dev/null | grep -c "UDID" || true)
           echo "UDIDs no profile: $DEVICES"
           if [ "${{ inputs.export_method }}" = "ad-hoc" ] && [ "$DEVICES" -eq 0 ]; then
-            echo "::error::Profile de Ad Hoc sem aparelhos registrados. Cadastre o UDID do iPhone em developer.apple.com e baixe o profile de novo."
+            echo "::error::Ad Hoc profile has no registered devices. Register the iPhone UDID at developer.apple.com and download the profile again."
             exit 1
           fi
 
-          echo "Identidades disponíveis:"
+          echo "Available identities:"
           security find-identity -v -p codesigning build.keychain
 
-      - name: Ajustar bundle id / assinatura manual
+      - name: Adjust bundle id / manual signing
         env:
           BUNDLE_ID: ${{ inputs.bundle_id }}
           TEAM_ID: ${{ inputs.team_id }}
@@ -136,7 +136,7 @@ jobs:
               return m.group(1) + inner + m.group(3)
 
           s = re.sub(r"(buildSettings = \{)(.*?)(\n\t\t\t\};)", fix, s, flags=re.S)
-          # identidade de distribuição para assinatura manual
+          # distribution identity for manual signing
           s = s.replace('"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";',
                         '"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";')
           s = s.replace('"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";',
@@ -146,7 +146,7 @@ jobs:
           PY
           grep -c "PROVISIONING_PROFILE_SPECIFIER" ios/Runner.xcodeproj/project.pbxproj
 
-      - name: Dependências
+      - name: Dependencies
         working-directory: app
         run: flutter pub get
 
@@ -158,7 +158,7 @@ jobs:
           TEAM_ID: ${{ inputs.team_id }}
           PROFILE_NAME: ${{ inputs.profile_name }}
         run: |
-          # Xcode 15.4+ renomeou os métodos de exportação.
+          # Xcode 15.4+ renamed the export methods.
           case "$METHOD" in
             ad-hoc) XCODE_METHOD="release-testing" ;;
             development) XCODE_METHOD="debugging" ;;
@@ -191,7 +191,7 @@ jobs:
           set -eux
           flutter build ipa --release --export-options-plist=ExportOptions.plist
 
-      - name: Conferir assinatura
+      - name: Verify signing
         working-directory: app
         run: |
           set -eux

@@ -1,13 +1,13 @@
 // FastSearchX Browser — Android (Flutter / Dart)
 //
-// Navegador no estilo Chrome com Material 3:
-//  1. Barra superior clássica (voltar, avançar, endereço, recarregar e menu ⋮).
-//  2. Menu ⋮ com Histórico, Downloads, Configurações, Página inicial e Sobre.
-//  3. Detecção automática de vídeos do YouTube e de mídia em qualquer site.
-//  4. Download em MP3 (convertido) e MP4 com resolução de 360p a 4K.
-//  5. Tela de Downloads com progresso em tempo real (estilo Snaptube).
-//  6. Detecção de link copiado na área de transferência.
-//  7. Temas claro/escuro/sistema e várias cores de destaque.
+// Chrome-style browser with Material 3:
+//  1. Classic top bar (back, forward, address, reload and the ⋮ menu).
+//  2. ⋮ menu with History, Downloads, Settings, Home page and About.
+//  3. Automatic detection of YouTube videos and media on any site.
+//  4. MP3 (converted) and MP4 downloads, from 360p up to 4K.
+//  5. Downloads screen with real-time progress (Snaptube style).
+//  6. Detection of a link copied to the clipboard.
+//  7. Light/dark/system themes and several accent colors.
 
 import 'dart:async';
 import 'dart:convert';
@@ -31,7 +31,7 @@ const String kHomeUrl = 'https://www.google.com';
 const String kGitHubUrl = 'https://github.com/SysArchX/FastSearchX';
 const String kAppVersion = '2.0.0';
 
-/// Canal nativo para receber links (navegador padrão) e abrir ajustes.
+/// Native channel to receive links (default browser) and open settings.
 const MethodChannel kIntentChannel = MethodChannel('fastsearchx/intent');
 const String _kUserAgent =
     'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 '
@@ -39,15 +39,15 @@ const String _kUserAgent =
 
 /// Caminhos locais de download (Android).
 ///
-/// Arquivos comuns ficam em `Download/FastSearchX`; vídeos e músicas ficam em
-/// subpastas próprias.
+/// Regular files live in `Download/FastSearchX`; videos and music live in
+/// their own subfolders.
 abstract final class AppPaths {
-  /// Raiz onde os downloads são salvos.
+  /// Root where downloads are saved.
   ///
-  /// - Android: `Download/FastSearchX` na memória compartilhada.
-  /// - iOS: `Documents/FastSearchX` dentro do sandbox do app, que aparece no app
-  ///   **Arquivos** em "No meu iPhone → FastSearchX" (precisa de
-  ///   `UIFileSharingEnabled` no Info.plist).
+  /// - Android: `Download/FastSearchX` on shared storage.
+  /// - iOS: `Documents/FastSearchX` inside the app sandbox, shown in the
+  ///   **Files** app under "On My iPhone -> FastSearchX" (requires
+  ///   `UIFileSharingEnabled` in Info.plist).
   static String get _root {
     if (Platform.isAndroid) return '/storage/emulated/0/Download';
     final home = Platform.environment['HOME'];
@@ -65,12 +65,12 @@ abstract final class AppPaths {
         final dir = Directory(path);
         if (!await dir.exists()) await dir.create(recursive: true);
       } catch (_) {
-        // Sem permissão ainda: será criado de novo antes do download.
+        // No permission yet: it will be recreated before the download.
       }
     }
   }
 
-  /// Pasta adequada para o arquivo, conforme o tipo.
+  /// Folder suitable for the file, according to its type.
   static String folderFor({required bool isVideo, required bool isAudio}) {
     if (isVideo) return videos;
     if (isAudio) return music;
@@ -107,7 +107,7 @@ abstract final class AppPaths {
 }
 
 // ---------------------------------------------------------------------------
-// Armazenamento interno (configurações e histórico)
+// Internal storage (settings and history)
 // ---------------------------------------------------------------------------
 
 abstract final class AppStorage {
@@ -118,7 +118,7 @@ abstract final class AppStorage {
     if (cached != null) return cached;
     Directory base;
     try {
-      // No Android, systemTemp fica em .../<pacote>/cache.
+      // On Android, systemTemp lives in .../<package>/cache.
       base = Directory('${Directory.systemTemp.parent.path}/files');
     } catch (_) {
       base = Directory.systemTemp;
@@ -155,7 +155,7 @@ class SettingsStore {
       if (value is int) seed = Color(value);
       lastClipboard = (data['lastClipboard'] ?? '').toString();
     } catch (_) {
-      // Mantém os padrões.
+      // Keep the defaults.
     }
   }
 
@@ -226,7 +226,7 @@ class HistoryStore {
         ..clear()
         ..addAll(data.map(HistoryEntry.fromJson).whereType<HistoryEntry>());
     } catch (_) {
-      // Histórico começa vazio.
+      // History starts empty.
     }
   }
 
@@ -292,7 +292,7 @@ String? canonicalYouTubeUrl(String raw) {
   return 'https://www.youtube.com/watch?v=$id';
 }
 
-/// Extensões que tratamos como arquivo para download (e não como página).
+/// Extensions treated as a download (and not as a page).
 const Set<String> _kDownloadExtensions = {
   '7z',
   'aac',
@@ -464,10 +464,10 @@ bool isDashMime(String? mime) {
 
 bool isStreamingMediaMime(String? mime) => isHlsMime(mime) || isDashMime(mime);
 
-/// Vídeo, áudio, HLS ou DASH — deve ir para as subpastas de mídia.
+/// Video, audio, HLS or DASH — must go into the media subfolders.
 bool isMediaUrl(String url) => looksLikeMedia(url) || isStreamingMediaUrl(url);
 
-/// Recursos que vale a pena continuar observando no `shouldInterceptRequest`.
+/// Resources worth continuing to watch in `shouldInterceptRequest`.
 bool isSniffableMediaUrl(String url) {
   if (!url.startsWith('http')) return false;
   if (isHlsUrl(url) || isDashUrl(url)) return true;
@@ -588,7 +588,7 @@ String formatBytes(int bytes) {
   return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
 }
 
-/// Extrai o nome do arquivo do cabeçalho `Content-Disposition`.
+/// Extracts the file name from the `Content-Disposition` header.
 String? fileNameFromDisposition(String? header) {
   if (header == null || header.isEmpty) return null;
 
@@ -600,7 +600,7 @@ String? fileNameFromDisposition(String? header) {
     try {
       return Uri.decodeComponent(extended.group(2)!.trim().replaceAll('"', ''));
     } catch (_) {
-      // Usa o formato simples abaixo.
+      // Uses the simple format below.
     }
   }
 
@@ -641,7 +641,7 @@ String sanitizeFileName(String raw) {
       .replaceAll(RegExp(r'[\\/:*?"<>|\x00-\x1f]'), '_')
       .replaceAll(RegExp(r'\s+'), ' ')
       .trim();
-  if (name.isEmpty || name == '.' || name == '..') name = 'arquivo';
+  if (name.isEmpty || name == '.' || name == '..') name = 'file';
   if (name.length > 120) {
     if (hasFileExtension(name)) {
       final ext = fileExtension(name);
@@ -653,7 +653,7 @@ String sanitizeFileName(String raw) {
   return name;
 }
 
-/// Gera um caminho livre, sem sobrescrever arquivos existentes.
+/// Builds a free path without overwriting existing files.
 String uniquePath(String directory, String fileName) {
   final safe = sanitizeFileName(fileName);
   var candidate = File('$directory/$safe');
@@ -831,7 +831,7 @@ class DownloadManager extends ChangeNotifier {
       sourceUrl: url,
       isAudio: isAudio,
       requestedHeight: height,
-      title: title ?? (isAudio ? 'Áudio' : 'Vídeo'),
+      title: title ?? (isAudio ? 'Audio' : 'Video'),
     );
     tasks.insert(0, task);
     _notify(force: true);
@@ -839,10 +839,10 @@ class DownloadManager extends ChangeNotifier {
     return task;
   }
 
-  /// Enfileira o download de vídeo/áudio de qualquer site.
+  /// Queues a video/audio download from any site.
   ///
-  /// Links diretos (MP4/MP3) são baixados com progresso; HLS (`.m3u8`) e
-  /// DASH (`.mpd`) são processados pelo FFmpeg e salvos nas subpastas.
+  /// Direct links (MP4/MP3) are downloaded with progress; HLS (`.m3u8`) and
+  /// DASH (`.mpd`) are handled by FFmpeg and saved into the subfolders.
   DownloadTask enqueueMedia({
     required String url,
     String? fileName,
@@ -883,7 +883,7 @@ class DownloadManager extends ChangeNotifier {
     return task;
   }
 
-  /// Enfileira o download de qualquer arquivo (link direto, LocalSend, etc.).
+  /// Queues a download of any file (direct link, LocalSend, etc.).
   DownloadTask enqueueFile({
     required String url,
     String? fileName,
@@ -900,7 +900,7 @@ class DownloadManager extends ChangeNotifier {
         (fileName != null && fileName.trim().isNotEmpty
             ? fileName.trim()
             : fileNameFromUrl(url)) ??
-        'arquivo';
+        'file';
     final audio = isAudio ?? (isAudioMime(mimeType) || isAudioUrl(suggested));
     final task = DownloadTask(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
@@ -966,7 +966,7 @@ class DownloadManager extends ChangeNotifier {
     task.totalBytes = size > 0 ? size : null;
     task.outputPath = out;
     task.phase = DownloadPhase.downloading;
-    task.message = size > 0 ? 'Baixando 0%' : 'Baixando...';
+    task.message = size > 0 ? 'Downloading 0%' : 'Downloading...';
     tasks.insert(0, task);
     try {
       final file = File(out);
@@ -977,8 +977,8 @@ class DownloadManager extends ChangeNotifier {
       );
     } catch (_) {
       task.phase = DownloadPhase.failed;
-      task.message = 'Falhou';
-      task.error = 'não foi possível criar o arquivo';
+      task.message = 'Failed';
+      task.error = 'could not create the file';
     }
     _notify(force: true);
     return task;
@@ -1000,11 +1000,11 @@ class DownloadManager extends ChangeNotifier {
       if (total != null && total > 0) {
         blob.task.progress = (blob.received / total).clamp(0.0, 1.0).toDouble();
         blob.task.message =
-            'Baixando ${(blob.task.progress! * 100).toStringAsFixed(0)}% • '
+            'Downloading ${(blob.task.progress! * 100).toStringAsFixed(0)}% • '
             '${formatBytes(blob.received)} de ${formatBytes(total)}';
       } else {
         blob.task.progress = null;
-        blob.task.message = 'Baixando... ${formatBytes(blob.received)}';
+        blob.task.message = 'Downloading... ${formatBytes(blob.received)}';
       }
       _notify();
     } catch (_) {
@@ -1021,15 +1021,15 @@ class DownloadManager extends ChangeNotifier {
       if (blob.task.cancelRequested) throw const _Canceled();
       blob.task.progress = 1;
       blob.task.phase = DownloadPhase.completed;
-      blob.task.message = 'Concluído • ${formatBytes(blob.received)}';
+      blob.task.message = 'Finished • ${formatBytes(blob.received)}';
     } catch (_) {
       if (blob.task.cancelRequested) {
         blob.task.phase = DownloadPhase.canceled;
         blob.task.message = 'Cancelado';
       } else {
         blob.task.phase = DownloadPhase.failed;
-        blob.task.message = 'Falhou';
-        blob.task.error = 'falha ao salvar o arquivo';
+        blob.task.message = 'Failed';
+        blob.task.error = 'failed to save the file';
       }
       try {
         if (await blob.file.exists()) await blob.file.delete();
@@ -1092,7 +1092,7 @@ class DownloadManager extends ChangeNotifier {
     YoutubeExplode? yt;
     try {
       if (!await ensureStoragePermission()) {
-        throw Exception('permissão de armazenamento negada');
+        throw Exception('storage permission denied');
       }
       await AppPaths.ensureFolders();
 
@@ -1103,7 +1103,7 @@ class DownloadManager extends ChangeNotifier {
         await _runFile(task);
       } else {
         yt = YoutubeExplode();
-        task.message = 'Analisando vídeo...';
+        task.message = 'Analyzing video...';
         _notify(force: true);
 
         final video = await yt.videos.get(canonical);
@@ -1118,15 +1118,15 @@ class DownloadManager extends ChangeNotifier {
 
         if (task.isAudio) {
           final audio = _bestAudio(manifest);
-          if (audio == null) throw Exception('áudio indisponível');
+          if (audio == null) throw Exception('audio not available');
           final out = '${AppPaths.music}/${base}_$stamp.mp3';
           final temp = '${AppPaths.base}/.tmp_$stamp.${audio.container.name}';
           temps.add(temp);
 
           task.phase = DownloadPhase.downloading;
-          task.message = 'Baixando áudio...';
+          task.message = 'Downloading audio...';
           _notify(force: true);
-          await _downloadYouTube(task, yt, audio, temp, 'áudio');
+          await _downloadYouTube(task, yt, audio, temp, 'audio');
 
           task.phase = DownloadPhase.processing;
           task.progress = null;
@@ -1137,12 +1137,12 @@ class DownloadManager extends ChangeNotifier {
             '${shellQuote(out)}',
           );
           if (task.cancelRequested) throw const _Canceled();
-          if (!ok) throw Exception('falha ao converter para MP3');
+          if (!ok) throw Exception('failed to convert to MP3');
           task.outputPath = out;
         } else {
           final selection = _selectVideo(manifest, task.requestedHeight);
           if (selection == null) {
-            throw Exception('nenhuma resolução disponível');
+            throw Exception('no resolution available');
           }
           final height = selection.height;
 
@@ -1159,26 +1159,26 @@ class DownloadManager extends ChangeNotifier {
               ..add(tempAudio);
 
             task.phase = DownloadPhase.downloading;
-            task.message = 'Baixando vídeo ${height}p...';
+            task.message = 'Downloading video ${height}p...';
             _notify(force: true);
             await _downloadYouTube(
               task,
               yt,
               selection.video,
               tempVideo,
-              'vídeo ${height}p',
+              'video ${height}p',
             );
             await _downloadYouTube(
               task,
               yt,
               selection.audio!,
               tempAudio,
-              'áudio',
+              'audio',
             );
 
             task.phase = DownloadPhase.processing;
             task.progress = null;
-            task.message = 'Juntando áudio e vídeo...';
+            task.message = 'Merging audio and video...';
             _notify(force: true);
             var ok = await runFfmpeg(
               '-y -i ${shellQuote(tempVideo)} -i ${shellQuote(tempAudio)} '
@@ -1200,7 +1200,7 @@ class DownloadManager extends ChangeNotifier {
                     '$stamp.${selection.video.container.name}';
                 await File(tempVideo).rename(fallback);
                 task.outputPath = fallback;
-                task.message = 'Salvo sem áudio';
+                task.message = 'Saved without audio';
               }
             } else {
               task.outputPath = out;
@@ -1209,14 +1209,14 @@ class DownloadManager extends ChangeNotifier {
             final ext = selection.video.container.name;
             final out = '${AppPaths.videos}/${base}_${height}p_$stamp.$ext';
             task.phase = DownloadPhase.downloading;
-            task.message = 'Baixando vídeo ${height}p...';
+            task.message = 'Downloading video ${height}p...';
             _notify(force: true);
             await _downloadYouTube(
               task,
               yt,
               selection.video,
               out,
-              'vídeo ${height}p',
+              'video ${height}p',
             );
             task.outputPath = out;
           }
@@ -1226,7 +1226,7 @@ class DownloadManager extends ChangeNotifier {
       if (task.cancelRequested) throw const _Canceled();
       task.phase = DownloadPhase.completed;
       task.progress = 1;
-      if (!task.message.startsWith('Concluído')) task.message = 'Concluído';
+      if (!task.message.startsWith('Finished')) task.message = 'Finished';
       _notify(force: true);
     } on _Canceled {
       task.phase = DownloadPhase.canceled;
@@ -1239,7 +1239,7 @@ class DownloadManager extends ChangeNotifier {
       } else {
         task.phase = DownloadPhase.failed;
         task.error = e.toString();
-        task.message = 'Falhou';
+        task.message = 'Failed';
       }
       _notify(force: true);
     } finally {
@@ -1261,10 +1261,10 @@ class DownloadManager extends ChangeNotifier {
       return;
     }
     if (url.startsWith('blob:')) {
-      throw Exception('download de blob não suportado por este caminho');
+      throw Exception('blob download not supported on this path');
     }
     if (url.startsWith('content:') || url.startsWith('file:')) {
-      throw Exception('endereço não suportado');
+      throw Exception('unsupported address');
     }
 
     task.phase = DownloadPhase.analyzing;
@@ -1334,7 +1334,7 @@ class DownloadManager extends ChangeNotifier {
     var received = 0;
 
     task.phase = DownloadPhase.downloading;
-    task.message = total != null ? 'Baixando 0%' : 'Baixando...';
+    task.message = total != null ? 'Downloading 0%' : 'Downloading...';
     _notify(force: true);
 
     try {
@@ -1346,11 +1346,11 @@ class DownloadManager extends ChangeNotifier {
         if (total != null) {
           task.progress = (received / total).clamp(0.0, 1.0).toDouble();
           task.message =
-              'Baixando ${(task.progress! * 100).toStringAsFixed(0)}% • '
+              'Downloading ${(task.progress! * 100).toStringAsFixed(0)}% • '
               '${formatBytes(received)} de ${formatBytes(total)}';
         } else {
           task.progress = null;
-          task.message = 'Baixando... ${formatBytes(received)}';
+          task.message = 'Downloading... ${formatBytes(received)}';
         }
         _notify();
       }
@@ -1370,14 +1370,14 @@ class DownloadManager extends ChangeNotifier {
     }
 
     task.progress = 1;
-    task.message = 'Concluído • ${formatBytes(received)}';
+    task.message = 'Finished • ${formatBytes(received)}';
     _notify(force: true);
   }
 
-  /// Download de vídeo/áudio de qualquer site.
+  /// Video/audio download from any site.
   ///
-  /// Links diretos são baixados com progresso real. Playlists HLS/DASH são
-  /// processadas pelo FFmpeg (com progresso quando a duração é conhecida).
+  /// Direct links are downloaded with real progress. HLS/DASH playlists are
+  /// handled by FFmpeg (with progress when the duration is known).
   Future<void> _runMedia(DownloadTask task) async {
     final url = task.sourceUrl;
 
@@ -1386,16 +1386,16 @@ class DownloadManager extends ChangeNotifier {
       return;
     }
     if (url.startsWith('blob:')) {
-      throw Exception('download de blob não suportado por este caminho');
+      throw Exception('blob download not supported on this path');
     }
     if (url.startsWith('content:') || url.startsWith('file:')) {
-      throw Exception('endereço não suportado');
+      throw Exception('unsupported address');
     }
 
     task.phase = DownloadPhase.analyzing;
     task.progress = null;
     task.message = (task.isStream || isStreamingMediaUrl(url))
-        ? 'Analisando transmissão...'
+        ? 'Analyzing stream...'
         : 'Conectando...';
     _notify(force: true);
 
@@ -1450,7 +1450,7 @@ class DownloadManager extends ChangeNotifier {
       final videoFile = isVideoMime(mime) || isVideoUrl(name);
 
       if (task.isAudio && !isAudioMime(mime) && !isAudioUrl(name)) {
-        // Vídeo escolhido como áudio: extrai a faixa para MP3.
+        // Video chosen as audio: extracts the track to MP3.
         final stem = _withoutExtension(name);
         final out = uniquePath(
           AppPaths.music,
@@ -1473,11 +1473,11 @@ class DownloadManager extends ChangeNotifier {
           out,
         ], totalMs: duration);
         if (task.cancelRequested) throw const _Canceled();
-        if (!ok) throw Exception('falha ao converter para MP3');
+        if (!ok) throw Exception('failed to convert to MP3');
         task.outputPath = out;
         task.fileName = out.split('/').last;
         task.title = task.fileName!;
-        task.message = 'Concluído • ${formatBytes(info.received)}';
+        task.message = 'Finished • ${formatBytes(info.received)}';
         return;
       }
 
@@ -1493,7 +1493,7 @@ class DownloadManager extends ChangeNotifier {
       task.outputPath = out;
       task.fileName = name;
       task.title = name;
-      task.message = 'Concluído • ${formatBytes(info.received)}';
+      task.message = 'Finished • ${formatBytes(info.received)}';
     } catch (_) {
       try {
         final file = File(temp);
@@ -1545,7 +1545,7 @@ class DownloadManager extends ChangeNotifier {
         return;
       }
       if (task.cancelRequested) throw const _Canceled();
-      // Alguns streams não convertem para MP3: tenta M4A.
+      // Some streams do not convert to MP3: try M4A.
       final m4a = uniquePath(folder, '$stem.m4a');
       if (await _runMediaAudio(task, url, headers, m4a, duration, m4a: true)) {
         task.outputPath = m4a;
@@ -1553,7 +1553,7 @@ class DownloadManager extends ChangeNotifier {
         task.title = task.fileName!;
         return;
       }
-      throw Exception('não foi possível extrair o áudio da transmissão');
+      throw Exception('could not extract the audio from the stream');
     }
 
     final out = uniquePath(folder, '$stem.mp4');
@@ -1565,7 +1565,7 @@ class DownloadManager extends ChangeNotifier {
     }
     if (task.cancelRequested) throw const _Canceled();
 
-    // Fallback 1: contêiner Matroska costuma aceitar qualquer codec.
+    // Fallback 1: the Matroska container usually accepts any codec.
     final mkv = uniquePath(folder, '$stem.mkv');
     if (await _runMediaVideo(task, url, headers, mkv, duration)) {
       task.outputPath = mkv;
@@ -1575,9 +1575,9 @@ class DownloadManager extends ChangeNotifier {
     }
     if (task.cancelRequested) throw const _Canceled();
 
-    // Fallback 2: recodifica para MP4 (mais lento, porém compatível).
+    // Fallback 2: re-encode to MP4 (slower but compatible).
     task.phase = DownloadPhase.processing;
-    task.message = 'Recodificando vídeo...';
+    task.message = 'Re-encoding video...';
     _notify(force: true);
     final reencoded = uniquePath(folder, '$stem.mp4');
     final ok = await _runFfmpegTask(task, [
@@ -1600,7 +1600,7 @@ class DownloadManager extends ChangeNotifier {
       reencoded,
     ], totalMs: duration);
     if (task.cancelRequested) throw const _Canceled();
-    if (!ok) throw Exception('não foi possível baixar a transmissão');
+    if (!ok) throw Exception('could not download the stream');
     task.outputPath = reencoded;
     task.fileName = reencoded.split('/').last;
     task.title = task.fileName!;
@@ -1614,7 +1614,7 @@ class DownloadManager extends ChangeNotifier {
     int? duration,
   ) async {
     task.phase = DownloadPhase.downloading;
-    task.message = 'Baixando vídeo...';
+    task.message = 'Downloading video...';
     _notify(force: true);
     return _runFfmpegTask(task, [
       '-y',
@@ -1642,7 +1642,7 @@ class DownloadManager extends ChangeNotifier {
     bool m4a = false,
   }) async {
     task.phase = DownloadPhase.downloading;
-    task.message = 'Baixando áudio...';
+    task.message = 'Downloading audio...';
     _notify(force: true);
     return _runFfmpegTask(task, [
       '-y',
@@ -1694,7 +1694,7 @@ class DownloadManager extends ChangeNotifier {
     final total = (candidate != null && candidate > 0) ? candidate : null;
     task.totalBytes = total;
     task.phase = DownloadPhase.downloading;
-    task.message = total != null ? 'Baixando 0%' : 'Baixando...';
+    task.message = total != null ? 'Downloading 0%' : 'Downloading...';
     _notify(force: true);
 
     final file = File(path);
@@ -1709,11 +1709,11 @@ class DownloadManager extends ChangeNotifier {
         if (total != null && total > 0) {
           task.progress = (received / total).clamp(0.0, 1.0).toDouble();
           task.message =
-              'Baixando ${(task.progress! * 100).toStringAsFixed(0)}% • '
+              'Downloading ${(task.progress! * 100).toStringAsFixed(0)}% • '
               '${formatBytes(received)} de ${formatBytes(total)}';
         } else {
           task.progress = null;
-          task.message = 'Baixando... ${formatBytes(received)}';
+          task.message = 'Downloading... ${formatBytes(received)}';
         }
         _notify();
       }
@@ -1812,7 +1812,7 @@ class DownloadManager extends ChangeNotifier {
         } else {
           task.progress = null;
           task.message = size > 0
-              ? 'Baixando... ${formatBytes(size)}'
+              ? 'Downloading... ${formatBytes(size)}'
               : 'Processando...';
         }
         _notify();
@@ -1850,7 +1850,7 @@ class DownloadManager extends ChangeNotifier {
             ? suggested.trim()
             : null) ??
         fileNameFromUrl(url) ??
-        'arquivo';
+        'file';
     name = sanitizeFileName(name);
     if (!hasFileExtension(name)) {
       final ext = extensionForMime(mimeType);
@@ -1861,7 +1861,7 @@ class DownloadManager extends ChangeNotifier {
 
   static Future<void> _saveDataUri(DownloadTask task, String url) async {
     final data = Uri.parse(url).data;
-    if (data == null) throw Exception('dados inválidos');
+    if (data == null) throw Exception('invalid data');
     final bytes = data.contentAsBytes();
     var name =
         task.fileName ?? 'arquivo_${DateTime.now().millisecondsSinceEpoch}';
@@ -1879,7 +1879,7 @@ class DownloadManager extends ChangeNotifier {
     task.progress = 1;
     task.receivedBytes = bytes.length;
     task.totalBytes = bytes.length;
-    task.message = 'Concluído • ${formatBytes(bytes.length)}';
+    task.message = 'Finished • ${formatBytes(bytes.length)}';
   }
 
   static Future<String> _cookiesFor(String url) async {
@@ -1934,8 +1934,8 @@ class DownloadManager extends ChangeNotifier {
         final ratio = total > 0 ? received / total : null;
         task.progress = ratio?.clamp(0.0, 1.0).toDouble();
         task.message = ratio == null
-            ? 'Baixando $label...'
-            : 'Baixando $label: ${(ratio * 100).toStringAsFixed(0)}%';
+            ? 'Downloading $label...'
+            : 'Downloading $label: ${(ratio * 100).toStringAsFixed(0)}%';
         _notify();
       }
     } finally {
@@ -2034,7 +2034,7 @@ class _Canceled implements Exception {
 }
 
 // ---------------------------------------------------------------------------
-// Inicialização
+// Bootstrap
 // ---------------------------------------------------------------------------
 
 Future<void> main() async {
@@ -2117,7 +2117,7 @@ class _FastSearchXAppState extends State<FastSearchXApp> {
 }
 
 // ---------------------------------------------------------------------------
-// Navegador (barra superior estilo Chrome)
+// Browser (Chrome-style top bar)
 // ---------------------------------------------------------------------------
 
 class BrowserScreen extends StatefulWidget {
@@ -2160,9 +2160,9 @@ class _BrowserScreenState extends State<BrowserScreen>
   Timer? _iosMediaTimer;
   String? _lastClipboardPrompt;
 
-  // "Liquid Glass" real: como o Flutter não consegue aplicar BackdropFilter
-  // sobre a WKWebView (platform view), tiramos um screenshot da faixa de baixo
-  // da página e desfocamos essa imagem atrás da cápsula da barra.
+  // Real "Liquid Glass": since Flutter cannot apply BackdropFilter
+  // over the WKWebView (platform view), we take a screenshot of the bottom strip
+  // of the page and blur that image behind the bar capsule.
   final GlobalKey _webViewKey = GlobalKey();
   ui.Image? _barSnapshot;
   Timer? _blurTimer;
@@ -2178,8 +2178,8 @@ class _BrowserScreenState extends State<BrowserScreen>
     _urlController.text = kHomeUrl;
     _listenForIntents();
     if (Platform.isIOS) {
-      // O WKWebView não tem shouldInterceptRequest: consultamos o DOM e o
-      // performance timing da página periodicamente para achar mídia.
+      // WKWebView has no shouldInterceptRequest: we query the DOM and the
+      // page performance timing periodically to find media.
       _iosMediaTimer = Timer.periodic(
         const Duration(seconds: 4),
         (_) => _pullPageMedia(),
@@ -2206,7 +2206,7 @@ class _BrowserScreenState extends State<BrowserScreen>
           _loadUrl(url);
         }
       } catch (_) {
-        // Sem link inicial.
+        // No initial link.
       }
     }();
   }
@@ -2260,9 +2260,9 @@ class _BrowserScreenState extends State<BrowserScreen>
         }
         window.__tfPost = tfPost;
 
-        // --- Detecção de rede (funciona também no iOS/WKWebView) ----------
-        // O WKWebView não expõe shouldInterceptRequest, então observamos as
-        // requisições do próprio JavaScript (fetch/XHR) e o performance timing.
+        // --- Network detection (also works on iOS/WKWebView) --------------
+        // WKWebView does not expose shouldInterceptRequest, so we watch the
+        // page's own JavaScript requests (fetch/XHR) and the performance timing.
         var tfMediaRe = /\.(mp4|m4v|webm|mkv|mov|m3u8|mpd|mp3|m4a|aac|ogg|opus|flac|wav)(\?|#|$)/i;
         window.__tfNet = window.__tfNet || [];
         function tfNoteNet(u) {
@@ -2323,7 +2323,7 @@ class _BrowserScreenState extends State<BrowserScreen>
           return out;
         }
 
-        // Usado pelo Dart como fallback quando o callHandler não responde.
+        // Used by Dart as a fallback when the callHandler does not respond.
         window.__tfCollect = function () {
           try { return JSON.stringify(collectMedia()); } catch (e) { return '[]'; }
         };
@@ -2466,13 +2466,13 @@ class _BrowserScreenState extends State<BrowserScreen>
     try {
       await _controller?.evaluateJavascript(source: js);
     } catch (_) {
-      // Página ainda carregando.
+      // Page still loading.
     }
     await _pullPageMedia();
   }
 
-  /// Lê a lista de mídia direto do JavaScript (fallback sem depender do
-  /// `callHandler`, que no iOS pode não responder em páginas com CSP rígida).
+  /// Reads the media list straight from JavaScript (fallback that does not rely on
+  /// `callHandler`, which on iOS may not respond on pages with a strict CSP).
   Future<void> _pullPageMedia() async {
     final controller = _controller;
     if (controller == null || !mounted) return;
@@ -2482,7 +2482,7 @@ class _BrowserScreenState extends State<BrowserScreen>
       );
       _applyJsMedia(raw);
     } catch (_) {
-      // Página sem o bridge (ainda carregando ou domínio restrito).
+      // Page without the bridge (still loading or a restricted domain).
     }
   }
 
@@ -2569,7 +2569,7 @@ class _BrowserScreenState extends State<BrowserScreen>
       }
       _onPageInfo(url: url, title: title, media: media);
     } catch (_) {
-      // Mensagem inválida.
+      // Invalid message.
     }
   }
 
@@ -2651,7 +2651,7 @@ class _BrowserScreenState extends State<BrowserScreen>
     return true;
   }
 
-  // --- Área de transferência ------------------------------------------------
+  // --- Clipboard ------------------------------------------------------------
 
   Future<void> _checkClipboard() async {
     if (!mounted || _dialogOpen) return;
@@ -2677,7 +2677,7 @@ class _BrowserScreenState extends State<BrowserScreen>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Deseja baixar o vídeo a partir do link copiado?'),
+              const Text('Download the video from the copied link?'),
               const SizedBox(height: 12),
               Text(
                 text,
@@ -2693,12 +2693,12 @@ class _BrowserScreenState extends State<BrowserScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Agora não'),
+              child: const Text('Not now'),
             ),
             FilledButton.icon(
               onPressed: () => Navigator.of(dialogContext).pop(true),
               icon: const Icon(Icons.download),
-              label: const Text('Baixar'),
+              label: const Text('Download'),
             ),
           ],
         ),
@@ -2711,11 +2711,11 @@ class _BrowserScreenState extends State<BrowserScreen>
         _startMediaDownload(url: text, isAudio: isAudioUrl(text));
       }
     } catch (_) {
-      // Área de transferência indisponível.
+      // Clipboard unavailable.
     }
   }
 
-  // --- URL / pesquisa -------------------------------------------------------
+  // --- URL / search ---------------------------------------------------------
 
   String _resolveUrl(String input) {
     final value = input.trim();
@@ -2744,8 +2744,8 @@ class _BrowserScreenState extends State<BrowserScreen>
   }
 
   void _maybeAutoPrompt(String url) {
-    // No iOS usamos o banner "Vídeo detectado" (menos intrusivo e sem
-    // diálogo surgindo por cima da página a cada navegação).
+    // On iOS we use the "Video detected" banner (less intrusive and without
+    // a dialog popping over the page on every navigation).
     if (Platform.isIOS) return;
     if (_dialogOpen) return;
     if (_autoPrompted.contains(url)) return;
@@ -2841,9 +2841,9 @@ class _BrowserScreenState extends State<BrowserScreen>
       children: const [
         SizedBox(height: 12),
         Text(
-          'Navegador completo com download de vídeos, músicas e qualquer '
-          'arquivo. Vídeos e músicas vão para subpastas em Download/FastSearchX; '
-          'os demais arquivos ficam na pasta principal.',
+          'Full browser with downloads of videos, music and any '
+          'file. Videos and music go into subfolders in Download/FastSearchX; '
+          'other files stay in the main folder.',
         ),
       ],
     );
@@ -3018,13 +3018,13 @@ class _BrowserScreenState extends State<BrowserScreen>
   Future<void> _showMediaPicker() async {
     final media = _pageMedia;
     if (media.isEmpty) {
-      _snack('Nenhuma mídia detectada nesta página.');
+      _snack('No media detected on this page.');
       return;
     }
     final selected = await showDialog<String>(
       context: context,
       builder: (dialogContext) => SimpleDialog(
-        title: const Text('Mídia detectada'),
+        title: const Text('Media detected'),
         children: [
           for (final url in media.take(12))
             SimpleDialogOption(
@@ -3090,7 +3090,7 @@ class _BrowserScreenState extends State<BrowserScreen>
     );
   }
 
-  /// WebView compartilhada pelos layouts Android e iOS.
+  /// WebView shared by the Android and iOS layouts.
   Widget _buildWebView() {
     return InAppWebView(
       initialUrlRequest: URLRequest(url: WebUri(_pendingIntentUrl ?? kHomeUrl)),
@@ -3183,15 +3183,15 @@ class _BrowserScreenState extends State<BrowserScreen>
       },
       onDownloadStartRequest: (controller, request) =>
           _handleDownloadRequest(request),
-      // NÃO registrar onReceivedServerTrustAuthRequest aqui.
-      // No WKWebView esse callback intercepta o desafio TLS de *qualquer*
-      // host: devolver CANCEL para hosts públicos cancela todo HTTPS e a
-      // página nunca carrega. Sem o callback, o WKWebView usa a validação
-      // padrão do sistema (a mesma do Safari).
+      // Do NOT register onReceivedServerTrustAuthRequest here.
+      // In WKWebView this callback intercepts the TLS challenge of *any*
+      // hosts: returning CANCEL for public hosts cancels all HTTPS and the
+      // page never loads. Without the callback, WKWebView uses the system
+      // default validation (the same as Safari).
     );
   }
 
-  // --- Aviso de mídia detectada (iOS e Android) -----------------------------
+  // --- Media detected banner (iOS and Android) -----------------------------
 
   bool get _showMediaBanner =>
       !_mediaBannerDismissed &&
@@ -3202,10 +3202,10 @@ class _BrowserScreenState extends State<BrowserScreen>
     final isYoutube = _detectedVideoUrl != null;
     final count = _pageMedia.length;
     final label = isYoutube
-        ? 'Vídeo do YouTube detectado'
+        ? 'YouTube video detected'
         : count == 1
-        ? 'Vídeo detectado nesta página'
-        : '$count mídias detectadas nesta página';
+        ? 'Video detected on this page'
+        : '$count media items detected on this page';
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 0),
       child: Container(
@@ -3241,13 +3241,13 @@ class _BrowserScreenState extends State<BrowserScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text('Baixar'),
+              child: const Text('Download'),
             ),
             IconButton(
               onPressed: () => setState(() => _mediaBannerDismissed = true),
               icon: const Icon(Icons.close, size: 16),
               visualDensity: VisualDensity.compact,
-              tooltip: 'Fechar',
+              tooltip: 'Close',
               color: scheme.onSurfaceVariant,
             ),
           ],
@@ -3302,8 +3302,8 @@ class _BrowserScreenState extends State<BrowserScreen>
     );
   }
 
-  /// Barra inferior flutuante no estilo Safari (iOS 26 "Liquid Glass"):
-  /// cápsula de vidro com blur real, borda hairline, brilho no topo e sombra.
+  /// Safari-style floating bottom bar (iOS 26 "Liquid Glass"):
+  /// glass capsule with real blur, hairline border, top highlight and shadow.
   Widget _buildIosChrome(ColorScheme scheme, bool isDark) {
     final top = (isDark ? const Color(0xFF2C2C2E) : const Color(0xFFFFFFFF))
         .withValues(alpha: isDark ? 0.78 : 0.88);
@@ -3338,8 +3338,8 @@ class _BrowserScreenState extends State<BrowserScreen>
             fit: StackFit.expand,
             children: [
               if (snapshot != null)
-                // O conteúdo real da página, desfocado: vidro de verdade,
-                // em vez de um gradiente opaco.
+                // The real page content, blurred: actual glass,
+                // instead of an opaque gradient.
                 Transform.scale(
                   scale: 1.18,
                   child: ImageFiltered(
@@ -3361,8 +3361,8 @@ class _BrowserScreenState extends State<BrowserScreen>
                     ),
                   ),
                 ),
-              // Tinta translúcida sobre o desfoque, para manter o contraste
-              // do texto e do campo de endereço.
+              // Translucent tint over the blur, to keep the contrast
+              // of the text and the address field.
               DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -3377,7 +3377,7 @@ class _BrowserScreenState extends State<BrowserScreen>
                   ),
                 ),
               ),
-              // Reflexo especular no topo, como no vidro do iOS.
+              // Specular highlight at the top, like iOS glass.
               Align(
                 alignment: Alignment.topCenter,
                 child: IgnorePointer(
@@ -3407,7 +3407,7 @@ class _BrowserScreenState extends State<BrowserScreen>
                     ),
                     _iosBarButton(
                       icon: CupertinoIcons.chevron_forward,
-                      tooltip: 'Avançar',
+                      tooltip: 'Forward',
                       onTap: _canGoForward
                           ? () => _controller?.goForward()
                           : null,
@@ -3460,7 +3460,7 @@ class _BrowserScreenState extends State<BrowserScreen>
     );
   }
 
-  /// Agenda a captura da faixa inferior da página para o vidro da barra.
+  /// Schedules the capture of the page's bottom strip for the bar glass.
   void _scheduleBarSnapshot([int delayMs = 150]) {
     if (!Platform.isIOS) return;
     _blurTimer?.cancel();
@@ -3504,7 +3504,7 @@ class _BrowserScreenState extends State<BrowserScreen>
         WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
       }
     } catch (_) {
-      // Página ainda não pronta: mantém o último snapshot (ou o gradiente).
+      // Page not ready yet: keep the last snapshot (or the gradient).
     } finally {
       _capturingBlur = false;
     }
@@ -3535,7 +3535,7 @@ class _BrowserScreenState extends State<BrowserScreen>
             child: CupertinoTextField(
               controller: _urlController,
               focusNode: _focusNode,
-              placeholder: 'Pesquisar ou digitar endereço',
+              placeholder: 'Search or type an address',
               placeholderStyle: TextStyle(
                 fontSize: 14.5,
                 color: scheme.onSurfaceVariant,
@@ -3624,21 +3624,21 @@ class _BrowserScreenState extends State<BrowserScreen>
     );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir no Safari.')),
+        const SnackBar(content: Text('Could not open in Safari.')),
       );
     }
   }
 
   Future<void> _showIosMenu() async {
     final entries = <MapEntry<String, String>>[
-      if (_detectedVideoUrl != null) const MapEntry('download', 'Baixar vídeo'),
-      if (_pageMedia.isNotEmpty) const MapEntry('media', 'Mídia da página'),
-      const MapEntry('safari', 'Abrir no Safari'),
-      const MapEntry('history', 'Histórico'),
+      if (_detectedVideoUrl != null) const MapEntry('download', 'Download video'),
+      if (_pageMedia.isNotEmpty) const MapEntry('media', 'Page media'),
+      const MapEntry('safari', 'Open in Safari'),
+      const MapEntry('history', 'History'),
       const MapEntry('downloads', 'Downloads'),
-      const MapEntry('settings', 'Configurações'),
-      const MapEntry('home', 'Página inicial'),
-      const MapEntry('about', 'Sobre'),
+      const MapEntry('settings', 'Settings'),
+      const MapEntry('home', 'Home page'),
+      const MapEntry('about', 'About'),
     ];
     final host = Uri.tryParse(_currentUrl)?.host ?? '';
     final selected = await showCupertinoModalPopup<String>(
@@ -3659,7 +3659,7 @@ class _BrowserScreenState extends State<BrowserScreen>
         cancelButton: CupertinoActionSheetAction(
           isDefaultAction: true,
           onPressed: () => Navigator.of(sheetContext).pop(),
-          child: const Text('Cancelar'),
+          child: const Text('Cancel'),
         ),
       ),
     );
@@ -3682,14 +3682,14 @@ class _BrowserScreenState extends State<BrowserScreen>
             ),
             IconButton(
               icon: const Icon(Icons.arrow_forward),
-              tooltip: 'Avançar',
+              tooltip: 'Forward',
               visualDensity: VisualDensity.compact,
               onPressed: _canGoForward ? () => _controller?.goForward() : null,
             ),
             Expanded(child: _buildAddressBar(scheme)),
             IconButton(
               icon: Icon(_isLoading ? Icons.close : Icons.refresh),
-              tooltip: _isLoading ? 'Parar' : 'Recarregar',
+              tooltip: _isLoading ? 'Stop' : 'Reload',
               visualDensity: VisualDensity.compact,
               onPressed: () {
                 if (_isLoading) {
@@ -3705,19 +3705,19 @@ class _BrowserScreenState extends State<BrowserScreen>
               onSelected: _onMenuSelected,
               itemBuilder: (_) => [
                 if (_detectedVideoUrl != null)
-                  _menuItem('download', Icons.download, 'Baixar vídeo'),
+                  _menuItem('download', Icons.download, 'Download video'),
                 if (_pageMedia.isNotEmpty)
                   _menuItem(
                     'media',
                     Icons.play_circle_outline,
-                    'Mídia da página',
+                    'Page media',
                   ),
-                _menuItem('history', Icons.history, 'Histórico'),
+                _menuItem('history', Icons.history, 'History'),
                 _menuItem('downloads', Icons.download_done, 'Downloads'),
-                _menuItem('settings', Icons.settings_outlined, 'Configurações'),
+                _menuItem('settings', Icons.settings_outlined, 'Settings'),
                 const PopupMenuDivider(),
-                _menuItem('home', Icons.home_outlined, 'Página inicial'),
-                _menuItem('about', Icons.info_outline, 'Sobre'),
+                _menuItem('home', Icons.home_outlined, 'Home page'),
+                _menuItem('about', Icons.info_outline, 'About'),
               ],
             ),
           ],
@@ -3761,7 +3761,7 @@ class _BrowserScreenState extends State<BrowserScreen>
                 focusNode: _focusNode,
                 style: const TextStyle(fontSize: 14),
                 decoration: const InputDecoration(
-                  hintText: 'Pesquisar ou digitar URL',
+                  hintText: 'Search or type a URL',
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
@@ -3797,7 +3797,7 @@ class _BrowserScreenState extends State<BrowserScreen>
 }
 
 // ---------------------------------------------------------------------------
-// Diálogo instantâneo de opções de download
+// Quick download options dialog
 // ---------------------------------------------------------------------------
 
 class DownloadRequest {
@@ -3821,26 +3821,26 @@ class DownloadOptionsDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return AlertDialog(
-      title: const Text('Baixar vídeo'),
+      title: const Text('Download video'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Escolha o formato:'),
+            const Text('Choose the format:'),
             const SizedBox(height: 8),
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const Icon(Icons.music_note),
               title: const Text('MP3 (192 kbps)'),
-              subtitle: const Text('Somente áudio'),
+              subtitle: const Text('Audio only'),
               onTap: () =>
                   Navigator.of(context)
                       .pop(DownloadRequest(url: videoUrl, isAudio: true)),
             ),
             const Divider(),
             const Text(
-              'Vídeo (MP4)',
+              'Video (MP4)',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
@@ -3871,7 +3871,7 @@ class DownloadOptionsDialog extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(
-              'A análise e o download continuam na tela Downloads.',
+              'Analysis and download continue on the Downloads screen.',
               style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
             ),
           ],
@@ -3880,7 +3880,7 @@ class DownloadOptionsDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
+          child: const Text('Cancel'),
         ),
       ],
     );
@@ -3888,7 +3888,7 @@ class DownloadOptionsDialog extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// Tela de Histórico
+// History screen
 // ---------------------------------------------------------------------------
 
 class HistoryScreen extends StatefulWidget {
@@ -3907,19 +3907,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ? await showCupertinoDialog<bool>(
             context: context,
             builder: (dialogContext) => CupertinoAlertDialog(
-              title: const Text('Limpar histórico?'),
+              title: const Text('Clear history?'),
               content: const Text(
-                'Todo o histórico de navegação será removido.',
+                'The entire browsing history will be removed.',
               ),
               actions: [
                 CupertinoDialogAction(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancelar'),
+                  child: const Text('Cancel'),
                 ),
                 CupertinoDialogAction(
                   isDestructiveAction: true,
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Limpar'),
+                  child: const Text('Clear'),
                 ),
               ],
             ),
@@ -3927,18 +3927,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
         : await showDialog<bool>(
             context: context,
             builder: (dialogContext) => AlertDialog(
-              title: const Text('Limpar histórico?'),
+              title: const Text('Clear history?'),
               content: const Text(
-                'Todo o histórico de navegação será removido.',
+                'The entire browsing history will be removed.',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancelar'),
+                  child: const Text('Cancel'),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Limpar'),
+                  child: const Text('Clear'),
                 ),
               ],
             ),
@@ -3955,7 +3955,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     if (Platform.isIOS) {
       return CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
-          middle: const Text('Histórico'),
+          middle: const Text('History'),
           trailing: entries.isEmpty
               ? null
               : CupertinoButton(
@@ -3970,7 +3970,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
         child: SafeArea(
           child: entries.isEmpty
-              ? const Center(child: Text('Nenhuma página visitada ainda.'))
+              ? const Center(child: Text('No pages visited yet.'))
               : ListView.separated(
                   padding: const EdgeInsets.only(bottom: 24),
                   itemCount: entries.length,
@@ -4016,17 +4016,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Histórico'),
+        title: const Text('History'),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep_outlined),
-            tooltip: 'Limpar histórico',
+            tooltip: 'Clear history',
             onPressed: entries.isEmpty ? null : _confirmClear,
           ),
         ],
       ),
       body: entries.isEmpty
-          ? const Center(child: Text('Nenhuma página visitada ainda.'))
+          ? const Center(child: Text('No pages visited yet.'))
           : ListView.separated(
               itemCount: entries.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
@@ -4047,7 +4047,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   isThreeLine: true,
                   trailing: IconButton(
                     icon: const Icon(Icons.close, size: 18),
-                    tooltip: 'Remover',
+                    tooltip: 'Remove',
                     onPressed: () {
                       HistoryStore.instance.remove(entry.url);
                       setState(() {});
@@ -4075,7 +4075,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Tela de Downloads (progresso em tempo real, estilo Snaptube)
+// Downloads screen (real-time progress, Snaptube style)
 // ---------------------------------------------------------------------------
 
 class DownloadsScreen extends StatefulWidget {
@@ -4133,7 +4133,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
           }
         }
       } catch (_) {
-        // Sem permissão de leitura.
+        // No read permission.
       }
     }
     files.sort((a, b) {
@@ -4155,7 +4155,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nenhum app abriu este arquivo.')),
+          const SnackBar(content: Text('No app opened this file.')),
         );
       }
     }
@@ -4177,12 +4177,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Atualizar arquivos',
+            tooltip: 'Refresh files',
             onPressed: _refreshFiles,
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep_outlined),
-            tooltip: 'Limpar concluídos',
+            tooltip: 'Clear finished',
             onPressed: () => DownloadManager.instance.clearFinished(),
           ),
         ],
@@ -4207,8 +4207,8 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                     Icon(Icons.download_done, size: 56),
                     SizedBox(height: 16),
                     Text(
-                      'Nenhum download ainda.\n'
-                      'Navegue e toque em um link para baixar qualquer arquivo.',
+                      'No downloads yet.\n'
+                      'Browse and tap a link to download any file.',
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -4244,9 +4244,9 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Outros arquivos: ${AppPaths.base}\n'
-                          'Vídeos: ${AppPaths.videos}\n'
-                          'Músicas: ${AppPaths.music}',
+                          'Other files: ${AppPaths.base}\n'
+                          'Videos: ${AppPaths.videos}\n'
+                          'Music: ${AppPaths.music}',
                           style: TextStyle(
                             fontSize: 11,
                             color: scheme.onSurfaceVariant,
@@ -4262,12 +4262,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
                   const SizedBox(height: 8),
                 ],
                 if (finished.isNotEmpty) ...[
-                  _sectionTitle('Concluídos'),
+                  _sectionTitle('Finished'),
                   for (final task in finished) _finishedTile(task),
                   const SizedBox(height: 8),
                 ],
                 if (_files.isNotEmpty) ...[
-                  _sectionTitle('Arquivos no dispositivo'),
+                  _sectionTitle('Files on the device'),
                   for (final file in _files) _fileTile(file),
                 ],
               ],
@@ -4359,7 +4359,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.close),
-              tooltip: 'Cancelar',
+              tooltip: 'Cancel',
               onPressed: () => DownloadManager.instance.cancel(task.id),
             ),
           ],
@@ -4380,10 +4380,10 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
               : (task.isAudio ? Icons.music_note : Icons.movie_outlined))
         : Icons.error_outline;
     final subtitle = ok
-        ? (task.outputPath ?? 'Concluído')
+        ? (task.outputPath ?? 'Finished')
         : canceled
         ? 'Cancelado'
-        : (task.error ?? 'Falhou');
+        : (task.error ?? 'Failed');
 
     return Card(
       elevation: 0,
@@ -4408,12 +4408,12 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
             if (ok && task.outputPath != null)
               IconButton(
                 icon: const Icon(Icons.play_arrow),
-                tooltip: 'Abrir',
+                tooltip: 'Open',
                 onPressed: () => _openFile(task.outputPath!),
               ),
             IconButton(
               icon: const Icon(Icons.close, size: 18),
-              tooltip: 'Remover da lista',
+              tooltip: 'Remove from the list',
               onPressed: () => DownloadManager.instance.remove(task.id),
             ),
           ],
@@ -4423,8 +4423,8 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
   }
 
   String _folderLabel(String path) {
-    if (path.startsWith(AppPaths.videos)) return 'Vídeos';
-    if (path.startsWith(AppPaths.music)) return 'Músicas';
+    if (path.startsWith(AppPaths.videos)) return 'Videos';
+    if (path.startsWith(AppPaths.music)) return 'Music';
     return 'Outros';
   }
 
@@ -4453,7 +4453,7 @@ class _DownloadsScreenState extends State<DownloadsScreen> {
 }
 
 // ---------------------------------------------------------------------------
-// Tela de Configurações
+// Settings screen
 // ---------------------------------------------------------------------------
 
 class SettingsScreen extends StatefulWidget {
@@ -4481,16 +4481,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Color(0xFFD81B60), // rosa
     Color(0xFF8E24AA), // roxo
     Color(0xFF5E35B1), // violeta
-    Color(0xFF3949AB), // índigo
+    Color(0xFF3949AB), // indigo
     Color(0xFF1E88E5), // azul
     Color(0xFF039BE5), // azul-claro
     Color(0xFF00ACC1), // ciano
     Color(0xFF00897B), // verde-azulado
     Color(0xFF43A047), // verde
     Color(0xFF7CB342), // verde-claro
-    Color(0xFFC0CA33), // limão
+    Color(0xFFC0CA33), // lime
     Color(0xFFFDD835), // amarelo
-    Color(0xFFFFB300), // âmbar
+    Color(0xFFFFB300), // amber
     Color(0xFFFB8C00), // laranja
     Color(0xFFF4511E), // laranja-escuro
     Color(0xFF6D4C41), // marrom
@@ -4518,7 +4518,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Não foi possível abrir o link.')),
+        const SnackBar(content: Text('Could not open the link.')),
       );
     }
   }
@@ -4534,7 +4534,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Não foi possível abrir os ajustes do Android.'),
+            content: Text('Could not open the Android settings.'),
           ),
         );
       }
@@ -4545,13 +4545,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return showCupertinoDialog<void>(
       context: context,
       builder: (dialogContext) => CupertinoAlertDialog(
-        title: const Text('Navegador padrão no iOS'),
+        title: const Text('Default browser on iOS'),
         content: const Text(
-          'O iOS não permite definir como navegador padrão um app instalado '
-          'fora da App Store. Apenas navegadores aprovados pela Apple '
-          '(Safari, Chrome, Firefox, Edge...) podem ocupar esse lugar.\n\n'
-          'No Android, o FastSearchX pode ser definido como navegador padrão: '
-          'Ajustes → Apps → Apps padrão → Navegador → FastSearchX.',
+          'iOS does not allow setting an installed app as the default '
+          'outside the App Store. Only browsers approved by Apple '
+          '(Safari, Chrome, Firefox, Edge...) can take that place.\n\n'
+          'On Android, FastSearchX can be set as the default browser: '
+          'Settings -> Apps -> Default apps -> Browser -> FastSearchX.',
         ),
         actions: [
           CupertinoDialogAction(
@@ -4569,19 +4569,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ? await showCupertinoDialog<bool>(
             context: context,
             builder: (dialogContext) => CupertinoAlertDialog(
-              title: const Text('Limpar histórico?'),
+              title: const Text('Clear history?'),
               content: const Text(
-                'Todo o histórico de navegação será removido.',
+                'The entire browsing history will be removed.',
               ),
               actions: [
                 CupertinoDialogAction(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancelar'),
+                  child: const Text('Cancel'),
                 ),
                 CupertinoDialogAction(
                   isDestructiveAction: true,
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Limpar'),
+                  child: const Text('Clear'),
                 ),
               ],
             ),
@@ -4589,18 +4589,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : await showDialog<bool>(
             context: context,
             builder: (dialogContext) => AlertDialog(
-              title: const Text('Limpar histórico?'),
+              title: const Text('Clear history?'),
               content: const Text(
-                'Todo o histórico de navegação será removido.',
+                'The entire browsing history will be removed.',
               ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancelar'),
+                  child: const Text('Cancel'),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
-                  child: const Text('Limpar'),
+                  child: const Text('Clear'),
                 ),
               ],
             ),
@@ -4609,7 +4609,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       await HistoryStore.instance.clear();
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Histórico limpo.')));
+            .showSnackBar(const SnackBar(content: Text('History cleared.')));
       }
     }
   }
@@ -4620,7 +4620,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return _buildAndroidSettings(context);
   }
 
-  // --- Configurações no estilo nativo do iOS (Cupertino) ---------------------
+  // --- Native iOS-style settings (Cupertino) --------------------------------
 
   Widget _cupertinoIcon(IconData icon, Color color) {
     return Container(
@@ -4642,7 +4642,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? const Color(0xFF000000)
           : const Color(0xFFF2F2F7),
       navigationBar: const CupertinoNavigationBar(
-        middle: Text('Configurações'),
+        middle: Text('Settings'),
       ),
       child: SafeArea(
         child: ListView(
@@ -4682,7 +4682,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
             CupertinoListSection.insetGrouped(
-              header: const Text('COR DO NAVEGADOR'),
+              header: const Text('BROWSER COLOR'),
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
@@ -4725,24 +4725,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     CupertinoIcons.delete_left,
                     const Color(0xFFFF3B30),
                   ),
-                  title: const Text('Limpar histórico'),
-                  subtitle: const Text('Remove todas as páginas visitadas'),
+                  title: const Text('Clear history'),
+                  subtitle: const Text('Removes all visited pages'),
                   trailing: const CupertinoListTileChevron(),
                   onTap: _clearHistory,
                 ),
               ],
             ),
             CupertinoListSection.insetGrouped(
-              header: const Text('NAVEGADOR'),
+              header: const Text('BROWSER'),
               children: [
                 CupertinoListTile(
                   leading: _cupertinoIcon(
                     CupertinoIcons.compass,
                     const Color(0xFF007AFF),
                   ),
-                  title: const Text('Navegador padrão'),
+                  title: const Text('Default browser'),
                   subtitle: const Text(
-                    'O iOS não permite definir apps fora da App Store',
+                    'iOS does not allow setting apps distributed outside the App Store',
                   ),
                   trailing: const CupertinoListTileChevron(),
                   onTap: _setDefaultBrowser,
@@ -4752,22 +4752,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     CupertinoIcons.folder,
                     const Color(0xFFFF9500),
                   ),
-                  title: const Text('Pastas de downloads'),
+                  title: const Text('Download folders'),
                   subtitle: const Text(
-                    'Arquivos → No meu iPhone → FastSearchX',
+                    'Files -> On My iPhone -> FastSearchX',
                   ),
                 ),
               ],
             ),
             CupertinoListSection.insetGrouped(
-              header: const Text('SOBRE'),
+              header: const Text('ABOUT'),
               children: [
                 CupertinoListTile(
                   leading: _cupertinoIcon(
                     CupertinoIcons.info,
                     const Color(0xFF8E8E93),
                   ),
-                  title: const Text('Versão'),
+                  title: const Text('Version'),
                   subtitle: Text('$kAppVersion (iOS)'),
                 ),
                 CupertinoListTile(
@@ -4783,7 +4783,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     CupertinoIcons.link,
                     const Color(0xFF5856D6),
                   ),
-                  title: const Text('Repositório oficial'),
+                  title: const Text('Official repository'),
                   subtitle: const Text('github.com/SysArchX/FastSearchX'),
                   trailing: const CupertinoListTileChevron(),
                   onTap: _openGitHub,
@@ -4799,7 +4799,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget _buildAndroidSettings(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurações')),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -4829,7 +4829,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const SizedBox(height: 24),
-          const _SectionTitle('Cor do navegador'),
+          const _SectionTitle('Browser color'),
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -4861,13 +4861,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: ListTile(
               leading: const Icon(Icons.delete_sweep_outlined),
-              title: const Text('Limpar histórico'),
-              subtitle: const Text('Remove todas as páginas visitadas'),
+              title: const Text('Clear history'),
+              subtitle: const Text('Removes all visited pages'),
               onTap: _clearHistory,
             ),
           ),
           const SizedBox(height: 28),
-          const _SectionTitle('Navegador'),
+          const _SectionTitle('Browser'),
           Card(
             elevation: 0,
             color: scheme.surfaceContainerLow,
@@ -4880,9 +4880,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (Platform.isAndroid) ...[
                   ListTile(
                     leading: const Icon(Icons.public),
-                    title: const Text('Definir como navegador padrão'),
+                    title: const Text('Set as default browser'),
                     subtitle: const Text(
-                      'Abra os ajustes do Android e escolha o FastSearchX',
+                      'Open the Android settings and choose FastSearchX',
                     ),
                     trailing: const Icon(Icons.open_in_new, size: 18),
                     onTap: _setDefaultBrowser,
@@ -4891,20 +4891,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
                 ListTile(
                   leading: const Icon(Icons.folder_outlined),
-                  title: const Text('Pastas de downloads'),
+                  title: const Text('Download folders'),
                   subtitle: Text(
                     Platform.isIOS
-                        ? 'Arquivos → No meu iPhone → FastSearchX'
+                        ? 'Files -> On My iPhone -> FastSearchX'
                         : 'Outros: ${AppPaths.base}\n'
-                              'Vídeos: ${AppPaths.videos}\n'
-                              'Músicas: ${AppPaths.music}',
+                              'Videos: ${AppPaths.videos}\n'
+                              'Music: ${AppPaths.music}',
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 28),
-          const _SectionTitle('Sobre'),
+          const _SectionTitle('About'),
           Card(
             elevation: 0,
             color: scheme.surfaceContainerLow,
@@ -4916,7 +4916,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.info_outline),
-                  title: const Text('Versão'),
+                  title: const Text('Version'),
                   subtitle: Text(
                     '$kAppVersion (${Platform.isIOS ? 'iOS' : 'Android'})',
                   ),
@@ -4930,7 +4930,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.code),
-                  title: const Text('Repositório oficial'),
+                  title: const Text('Official repository'),
                   subtitle: const Text('github.com/SysArchX/FastSearchX'),
                   trailing: const Icon(Icons.open_in_new, size: 18),
                   onTap: _openGitHub,

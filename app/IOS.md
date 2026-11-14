@@ -1,53 +1,54 @@
-# FastSearchX no iOS (.ipa)
+# FastSearchX on iOS (.ipa)
 
-O `.ipa` é gerado num runner **macOS** do GitHub Actions, porque o build de iOS
-só existe com Xcode (não há como compilar iOS no Linux nem "converter" o APK).
+The `.ipa` is produced on a **macOS** GitHub Actions runner, because the iOS
+build only exists with Xcode (there is no way to compile iOS on Linux, nor to
+"convert" the APK).
 
-## Gerar o .ipa
+## Producing the .ipa
 
-1. Abra **Actions → “iOS (.ipa sem assinatura)” → Run workflow**.
-2. Espere ~20–40 min (o pod do FFmpeg baixa ~49 MB de frameworks).
-3. Baixe o artefato **`FastSearchX-ios-unsigned-ipa`** no fim da página da execução.
+1. Open **Actions → "iOS (unsigned .ipa)" → Run workflow**.
+2. Wait ~20–40 min (the FFmpeg pod downloads ~49 MB of frameworks).
+3. Download the **`FastSearchX-ios-unsigned-ipa`** artifact at the bottom of the run page.
 
-O artefato traz `FastSearchX-<versao>-ios-unsigned.ipa` e o `.sha256`.
-Ele sai **sem assinatura** — a Apple só instala app assinado por um Apple ID.
+The artifact contains `FastSearchX-<version>-ios-unsigned.ipa` and its `.sha256`.
+It comes out **unsigned** — Apple only installs apps signed by an Apple ID.
 
-## Instalar no iPhone
+## Installing on the iPhone
 
-| Ferramenta | Onde roda | Conta | Validade do app |
+| Tool | Where it runs | Account | App validity |
 | --- | --- | --- | --- |
-| [Sideloadly](https://sideloadly.io) | Windows/macOS | Apple ID grátis | 7 dias (renovar) |
-| [AltStore](https://altstore.io) + AltServer | Windows/macOS | Apple ID grátis | 7 dias (renova sozinho com o AltServer ligado) |
-| Xcode → *Window → Devices and Simulators* → “+” | macOS | Apple ID grátis | 7 dias |
-| TestFlight / Ad Hoc | macOS | Apple Developer **pago** (US$ 99/ano) | 90 dias / 1 ano |
+| [Sideloadly](https://sideloadly.io) | Windows/macOS | Free Apple ID | 7 days (renew) |
+| [AltStore](https://altstore.io) + AltServer | Windows/macOS | Free Apple ID | 7 days (renews by itself while AltServer is running) |
+| Xcode → *Window → Devices and Simulators* → "+" | macOS | Free Apple ID | 7 days |
+| TestFlight / Ad Hoc | macOS | **Paid** Apple Developer (US$ 99/year) | 90 days / 1 year |
 
-Primeira instalação: no iPhone, **Ajustes → Geral → VPN e Gerenciamento de
-Dispositivo → confiar no desenvolvedor**.
+First install: on the iPhone, go to **Settings → General → VPN & Device
+Management → trust the developer**.
 
-## Build local (se você tiver um Mac)
+## Local build (if you have a Mac)
 
 ```bash
 cd app
 flutter pub get
 cd ios && pod install && cd ..
-flutter build ipa --release      # assinado, precisa de conta Apple
-flutter build ios --release --no-codesign   # sem assinatura, para reassinar
+flutter build ipa --release      # signed, requires an Apple account
+flutter build ios --release --no-codesign   # unsigned, to re-sign
 ```
 
-## O que muda no iOS em relação ao Android
+## What differs on iOS compared to Android
 
-- **Downloads** vão para `Documents/FastSearchX` dentro do sandbox e aparecem no
-  app **Arquivos** em *No meu iPhone → FastSearchX* (ligado por
-  `UIFileSharingEnabled` no `Info.plist`).
-- **Navegador padrão** não pode ser registrado por app no iOS; o item
-  correspondente nas configurações só aparece no Android.
-- As pastas `Download/FastSearchX*` da memória compartilhada do Android não
-  existem no iOS (`MANAGE_EXTERNAL_STORAGE` é exclusivo do Android).
-- HTTP simples é liberado por `NSAppTransportSecurity` (equivalente ao
-  `usesCleartextTraffic` do Android).
+- **Downloads** go to `Documents/FastSearchX` inside the sandbox and show up in
+  the **Files** app under *On My iPhone → FastSearchX* (enabled by
+  `UIFileSharingEnabled` in `Info.plist`).
+- **Default browser** cannot be registered by an app on iOS; the matching
+  settings item only appears on Android.
+- The `Download/FastSearchX*` folders on Android shared storage do not exist on
+  iOS (`MANAGE_EXTERNAL_STORAGE` is Android-only).
+- Plain HTTP is allowed through `NSAppTransportSecurity` (the equivalent of
+  Android's `usesCleartextTraffic`).
 
-## Limitações conhecidas do iOS
+## Known iOS limitations
 
-- App Store: um app que baixa vídeos de “qualquer site” provavelmente é
-  rejeitado na revisão. Para uso pessoal, use sideload/TestFlight.
-- Sem conta paga, o app expira a cada 7 dias e o limite é de 3 apps por Apple ID.
+- App Store: an app that downloads videos from "any site" is likely to be
+  rejected in review. For personal use, use sideloading/TestFlight.
+- Without a paid account the app expires every 7 days and the limit is 3 apps per Apple ID.

@@ -17,18 +17,18 @@ _AUDIO_QUALITIES = {"0", "128", "192", "320"}
 
 
 def ffmpeg_available() -> bool:
-    """Informa se o ffmpeg está disponível no PATH."""
+    """Tells whether ffmpeg is available on PATH."""
     return shutil.which("ffmpeg") is not None
 
 
 @dataclass
 class DownloadOptions:
-    """Opções escolhidas pelo usuário na interface."""
+    """Options chosen by the user in the interface."""
 
     url: str
     destination: str
     mode: str = "video"  # "video" ou "audio"
-    quality: str = "best"  # vídeo: best/1080/720/480/360 | áudio: 0/320/192/128
+    quality: str = "best"  # video: best/1080/720/480/360 | audio: 0/320/192/128
     playlist: bool = False
     playlist_items: str = ""
     embed_metadata: bool = True
@@ -62,8 +62,8 @@ class _Logger:
 class DownloadJob:
     """Executa um download do yt-dlp em uma thread separada.
 
-    Os callbacks são chamados a partir da thread de download. A interface
-    deve reenviá-los para o loop principal do GTK com ``GLib.idle_add``.
+    The callbacks are called from the download thread. The interface
+    must forward them to the GTK main loop with ``GLib.idle_add``.
     """
 
     def __init__(
@@ -94,7 +94,7 @@ class DownloadJob:
         self._errors: list[str] = []
         self._ydl = None
 
-        # Progresso agregado de vídeo + áudio baixados separadamente
+        # Aggregate progress of video + audio downloaded separately
         self._selected_format_ids: list[str] = []
         self._format_sizes: dict[str, float] = {}
         self._stream_downloaded: dict[str, float] = {}
@@ -113,7 +113,7 @@ class DownloadJob:
 
     def _check_cancel(self) -> None:
         if self._cancel_event.is_set():
-            raise yt_dlp.utils.DownloadCancelled("Cancelado pelo usuário")
+            raise yt_dlp.utils.DownloadCancelled("Cancelled by the user")
 
     # ------------------------------------------------------------------
     # Callbacks internos
@@ -176,9 +176,9 @@ class DownloadJob:
         return fraction
 
     def _handle_info(self, message: str) -> None:
-        """Captura a lista de formatos escolhidos pelo yt-dlp.
+        """Captures the list of formats chosen by yt-dlp.
 
-        A mensagem tem o formato:
+        The message has the format:
             [info] ID: Downloading 1 format(s): 395+251
         """
         match = re.search(r"Downloading \d+ format\(s\): (.+)$", str(message))
@@ -208,7 +208,7 @@ class DownloadJob:
                 self._format_sizes[identifier] = float(size)
 
     def _item_fraction(self, downloaded, total, info: dict) -> float:
-        """Calcula o progresso considerando vídeo e áudio separados."""
+        """Computes progress considering separate video and audio."""
         identifier = str(info.get("format_id") or "")
         if identifier:
             self._stream_downloaded[identifier] = float(downloaded or 0)
@@ -245,10 +245,10 @@ class DownloadJob:
         has_video = bool(vcodec and vcodec != "none")
         has_audio = bool(acodec and acodec != "none")
         if has_video and not has_audio:
-            return "Baixando vídeo"
+            return "Downloading video"
         if has_audio and not has_video:
-            return "Baixando áudio"
-        return "Baixando"
+            return "Downloading audio"
+        return "Downloading"
 
     # ------------------------------------------------------------------
     # Hooks do yt-dlp
@@ -329,7 +329,7 @@ class DownloadJob:
                 },
                 force=True,
             )
-            self._status("Processando arquivo...")
+            self._status("Processing file...")
 
     def _postprocessor_hook(self, data: dict) -> None:
         self._check_cancel()
@@ -337,19 +337,19 @@ class DownloadJob:
         status = data.get("status")
 
         labels = {
-            "FFmpegExtractAudio": "Convertendo áudio para MP3...",
+            "FFmpegExtractAudio": "Converting audio to MP3...",
             "FFmpegMetadata": "Incorporando metadados...",
-            "Merger": "Juntando vídeo e áudio...",
-            "MoveFiles": "Organizando arquivos...",
+            "Merger": "Merging video and audio...",
+            "MoveFiles": "Organizing files...",
         }
 
         if status == "started":
-            self._status(labels.get(name, "Processando arquivo..."))
+            self._status(labels.get(name, "Processing file..."))
         elif status == "finished":
             self._status("Finalizando...")
 
     # ------------------------------------------------------------------
-    # Montagem das opções do yt-dlp
+    # Building the yt-dlp options
     # ------------------------------------------------------------------
     def _format_selector(self) -> str:
         options = self.options
@@ -383,8 +383,8 @@ class DownloadJob:
 
         if not has_ffmpeg:
             raise RuntimeError(
-                "O ffmpeg não está instalado. Ele é necessário para juntar "
-                "vídeo e áudio e para converter o áudio em MP3.\n\n"
+                "ffmpeg is not installed. It is required to merge "
+                "video and audio and to convert audio to MP3.\n\n"
                 "Instale com:\n    sudo apt install ffmpeg"
             )
 
@@ -417,9 +417,9 @@ class DownloadJob:
                 ydl_opts["ffmpeg_location"] = os.path.dirname(ffmpeg_path)
 
         if QJS_PATH:
-            # QuickJS permite resolver os desafios JavaScript do YouTube.
-            # O componente remoto (script solucionador) é baixado na primeira
-            # utilização e fica em cache.
+            # QuickJS solves the YouTube JavaScript challenges.
+            # The remote component (solver script) is downloaded on the first
+            # use and then cached.
             ydl_opts["js_runtimes"] = {"quickjs": {"path": QJS_PATH}}
             ydl_opts["remote_components"] = {"ejs:github"}
 
@@ -444,7 +444,7 @@ class DownloadJob:
         return ydl_opts
 
     # ------------------------------------------------------------------
-    # Execução
+    # Execution
     # ------------------------------------------------------------------
     def run(self) -> None:
         try:
@@ -459,19 +459,19 @@ class DownloadJob:
             if self._cancel_event.is_set():
                 self._finish(False, "Download cancelado.")
             elif self._finished_ids or self._skipped_existing:
-                self._finish(True, "Download concluído com sucesso.")
+                self._finish(True, "Download finished successfully.")
             elif self._errors:
                 last_error = _ANSI_RE.sub("", self._errors[-1]).strip()
                 self._finish(False, f"Erro: {last_error}")
             else:
                 self._finish(
                     False,
-                    "Nenhum item foi baixado. Confira o link e os detalhes.",
+                    "No item was downloaded. Check the link and the details.",
                 )
 
         except yt_dlp.utils.DownloadCancelled:
             self._finish(False, "Download cancelado.")
-        except Exception as exc:  # noqa: BLE001 - erro exibido ao usuário
+        except Exception as exc:  # noqa: BLE001 - error shown to the user
             message = str(exc).strip() or exc.__class__.__name__
             self._log(f"Erro: {message}")
             self._finish(False, f"Erro: {message}")

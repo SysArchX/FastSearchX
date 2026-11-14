@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Constrói o pacote .deb do FastSearchX.
+# Builds the FastSearchX .deb package.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -11,17 +11,17 @@ PKG_NAME="fastsearchx_${VERSION}_${ARCH}"
 STAGE="$ROOT/build/$PKG_NAME"
 DIST="$ROOT/dist"
 
-echo "==> Versão: $VERSION | Arquitetura: $ARCH"
+echo "==> Version: $VERSION | Architecture: $ARCH"
 
 # ----------------------------------------------------------------------
-# Dependências embutidas
+# Bundled dependencies
 # ----------------------------------------------------------------------
 "$ROOT/packaging/fetch-deps.sh"
 
 QJS="$ROOT/data/bin/qjs"
 
 # ----------------------------------------------------------------------
-# Estrutura do pacote
+# Package structure
 # ----------------------------------------------------------------------
 rm -rf "$STAGE"
 mkdir -p "$STAGE/DEBIAN"
@@ -64,7 +64,7 @@ install -Dm644 "$ROOT/README.md" "$STAGE/usr/share/doc/fastsearchx/README.md"
 install -Dm644 "$ROOT/vendor/yt_dlp-2026.10.26.dist-info/licenses/LICENSE" \
     "$STAGE/usr/share/doc/fastsearchx/copyright-yt-dlp" 2>/dev/null || true
 
-# Permissões consistentes (arquivos 644; executáveis 755)
+# Consistent permissions (files 644; executables 755)
 find "$STAGE/usr" -type d -exec chmod 755 {} +
 find "$STAGE/usr" -type f -exec chmod 644 {} +
 chmod 755 "$STAGE/usr/bin/fastsearchx" "$STAGE/usr/lib/fastsearchx/bin/qjs"
@@ -84,16 +84,16 @@ Installed-Size: $INSTALLED_SIZE
 Depends: python3 (>= 3.11), python3-gi, gir1.2-gtk-3.0, gir1.2-webkit2-4.1, ffmpeg
 Recommends: python3-pip, yt-dlp, xdg-utils
 Maintainer: LazLabs <lazlabs@localhost>
-Description: Navegador estilo Chrome com baixador de vídeos e músicas
- Navegador com abas (WebKit2GTK) que também baixa vídeos (MP4) e músicas
- (MP3) de links e playlists do YouTube. Usa o yt-dlp embutido, com
- progresso, cancelamento, escolha de qualidade, seleção de itens da
- playlist e atualização do yt-dlp.
+Description: Chrome-style browser with a video and music downloader
+ Tabbed browser (WebKit2GTK) that also downloads videos (MP4) and music
+ (MP3) from YouTube links and playlists. Uses the bundled yt-dlp, with
+ progress, cancellation, quality selection, playlist item selection
+ and yt-dlp updates.
 EOF
 
-# Sem scripts de pós-instalação: os caches de desktop/ícones são atualizados
-# pelos triggers do dpkg (desktop-file-utils e hicolor-icon-theme).
-# Isso evita qualquer chance de o instalador gráfico travar (AptKit/PackageKit).
+# No post-installation scripts: desktop/icon caches are updated
+# by the dpkg triggers (desktop-file-utils and hicolor-icon-theme).
+# This avoids any chance of the graphical installer hanging (AptKit/PackageKit).
 
 # ----------------------------------------------------------------------
 # Empacotamento
@@ -102,8 +102,8 @@ mkdir -p "$DIST"
 dpkg-deb --build --root-owner-group "$STAGE" "$DIST/$PKG_NAME.deb"
 
 echo
-echo "==> Pacote criado: $DIST/$PKG_NAME.deb"
-echo "    Tamanho: $(du -h "$DIST/$PKG_NAME.deb" | cut -f1)"
+echo "==> Package created: $DIST/$PKG_NAME.deb"
+echo "    Size: $(du -h "$DIST/$PKG_NAME.deb" | cut -f1)"
 echo
 echo "Instale com:"
 echo "    sudo apt install \"$DIST/$PKG_NAME.deb\""

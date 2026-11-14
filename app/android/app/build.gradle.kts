@@ -46,9 +46,9 @@ android {
                 keyPassword = keystoreProperties["keyPassword"] as String
                 storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
                 storePassword = keystoreProperties["storePassword"] as String
-                // Assina com JAR signing (v1) + v2 + v3.
-                // O v1 é exigido por vários instaladores/OEMs em Android 7 e 8 e também
-                // permite verificar o APK com "jarsigner -verify" no PC.
+                // Signs with JAR signing (v1) + v2 + v3.
+                // v1 is required by several installers/OEMs on Android 7 and 8 and also
+                // lets you verify the APK with "jarsigner -verify" on the PC.
                 enableV1Signing = true
                 enableV2Signing = true
                 enableV3Signing = true
@@ -57,10 +57,10 @@ android {
     }
 
     packaging {
-        // Empacota as bibliotecas nativas exatamente como na 1.2.0 (que instala
-        // em qualquer aparelho): .so sem compressão (Stored) e
-        // extractNativeLibs=false no manifesto. O modo "legado" (extrair na
-        // instalação) quebrava a instalação em vários aparelhos.
+        // Packages the native libraries exactly as in 1.2.0 (which installs
+        // on any device): uncompressed (Stored) .so files and
+        // extractNativeLibs=false in the manifest. The "legacy" mode (extract at
+        // installation) broke installation on several devices.
         jniLibs {
             useLegacyPackaging = false
         }

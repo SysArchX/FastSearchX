@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera os ícones PNG do aplicativo a partir de um desenho vetorial simples."""
+"""Generates the app's PNG icons from a simple vector drawing."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def build() -> Image.Image:
     hdraw.ellipse((-220, -520, BASE + 220, 520), fill=(255, 255, 255, 38))
     gradient = Image.alpha_composite(gradient, highlight)
 
-    # Máscara arredondada
+    # Rounded mask
     mask = rounded_mask(BASE, 224)
     icon = Image.new("RGBA", (BASE, BASE), (0, 0, 0, 0))
     icon.paste(gradient, (0, 0), mask)
@@ -98,7 +98,7 @@ def main() -> None:
     for size in SIZES:
         resized = icon.resize((size, size), Image.LANCZOS)
         resized.save(OUTPUT / f"fastsearchx-{size}.png")
-    print(f"Ícones gerados em {OUTPUT}")
+    print(f"Icons generated in {OUTPUT}")
 
 
 if __name__ == "__main__":

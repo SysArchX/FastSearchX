@@ -1,8 +1,8 @@
-"""Navegador estilo Chrome (GTK3 + WebKit2GTK) do FastSearchX.
+"""FastSearchX Chrome-style browser (GTK3 + WebKit2GTK).
 
-A janela principal do aplicativo é este navegador com abas. O baixador de
-vídeos/músicas (yt-dlp) continua disponível pelo botão de download da barra de
-ferramentas, pelo menu e pelo botão direito sobre um link.
+The app's main window is this tabbed browser. The video/music downloader
+(yt-dlp) is still available through the toolbar download button,
+the menu and the right-click menu on a link.
 """
 
 from __future__ import annotations
@@ -100,7 +100,7 @@ def _filename_from_uri(uri: str) -> str:
 
 
 def normalize_input(text: str) -> str:
-    """Transforma o texto da barra de endereço em URL (como o Chrome)."""
+    """Turns the address bar text into a URL (like Chrome)."""
     value = (text or "").strip()
     if not value:
         return HOME_URL
@@ -117,7 +117,7 @@ def normalize_input(text: str) -> str:
 
 
 class DownloadEntry:
-    """Uma linha da barra de downloads (estilo Chrome)."""
+    """A row in the downloads bar (Chrome style)."""
 
     def __init__(self, download: WebKit2.Download, path: Path):
         self.download = download
@@ -151,7 +151,7 @@ class DownloadEntry:
         self.action.set_image(
             Gtk.Image.new_from_icon_name("window-close-symbolic", Gtk.IconSize.BUTTON)
         )
-        self.action.set_tooltip_text("Cancelar download")
+        self.action.set_tooltip_text("Cancel download")
         self.row.pack_end(self.action, False, False, 0)
 
         self.row.show_all()
@@ -159,7 +159,7 @@ class DownloadEntry:
 
 
 class BrowserWindow(Gtk.ApplicationWindow):
-    """Janela principal: navegador com abas."""
+    """Main window: tabbed browser."""
 
     def __init__(
         self,
@@ -199,7 +199,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(outer)
 
-        # Barra de ferramentas -----------------------------------------
+        # Toolbar ------------------------------------------------------
         toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
         toolbar.get_style_context().add_class("browser-toolbar")
         outer.pack_start(toolbar, False, False, 0)
@@ -208,13 +208,13 @@ class BrowserWindow(Gtk.ApplicationWindow):
             "go-previous-symbolic", "Voltar (Alt+←)", self.go_back
         )
         self.forward_button = self._tool_button(
-            "go-next-symbolic", "Avançar (Alt+→)", self.go_forward
+            "go-next-symbolic", "Forward (Alt+→)", self.go_forward
         )
         self.reload_button = self._tool_button(
             "view-refresh-symbolic", "Recarregar (Ctrl+R)", self.reload
         )
         self.home_button = self._tool_button(
-            "go-home-symbolic", "Página inicial", self.go_home
+            "go-home-symbolic", "Home page", self.go_home
         )
         for button in (
             self.back_button,
@@ -232,11 +232,11 @@ class BrowserWindow(Gtk.ApplicationWindow):
         self.security_icon = Gtk.Image.new_from_icon_name(
             "channel-secure-symbolic", Gtk.IconSize.BUTTON
         )
-        self.security_icon.set_tooltip_text("Conexão HTTPS")
+        self.security_icon.set_tooltip_text("HTTPS connection")
         address_box.pack_start(self.security_icon, False, False, 0)
 
         self.address_entry = Gtk.Entry()
-        self.address_entry.set_placeholder_text("Pesquise no Google ou digite um endereço")
+        self.address_entry.set_placeholder_text("Search Google or type an address")
         self.address_entry.set_hexpand(True)
         self.address_entry.get_style_context().add_class("address-field")
         self.address_entry.connect("activate", self._on_address_activated)
@@ -247,7 +247,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
 
         self.download_button = self._tool_button(
             "folder-download-symbolic",
-            "Baixar vídeo/áudio desta página",
+            "Download video/audio from this page",
             self._download_current_page,
         )
         self.new_tab_button = self._tool_button(
@@ -264,7 +264,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         menu_button.set_popup(self._build_menu())
         toolbar.pack_start(menu_button, False, False, 0)
 
-        # Barra de progresso fina (estilo Chrome) ----------------------
+        # Thin progress bar (Chrome style) -----------------------------
         self.load_bar = Gtk.ProgressBar()
         self.load_bar.set_size_request(-1, 3)
         self.load_bar.set_fraction(0.0)
@@ -278,7 +278,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         self.notebook.connect("switch-page", self._on_switch_page)
         outer.pack_start(self.notebook, True, True, 0)
 
-        # Barra de downloads ------------------------------------------
+        # Downloads bar ------------------------------------------------
         self.download_revealer = Gtk.Revealer()
         self.download_revealer.set_transition_type(Gtk.RevealerTransitionType.SLIDE_UP)
         download_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
@@ -290,7 +290,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         header_label.set_xalign(0)
         header_label.get_style_context().add_class("section-label")
         header.pack_start(header_label, True, True, 0)
-        open_folder = Gtk.Button(label="Abrir pasta")
+        open_folder = Gtk.Button(label="Open folder")
         open_folder.set_relief(Gtk.ReliefStyle.NONE)
         open_folder.connect("clicked", self._open_download_folder)
         header.pack_end(open_folder, False, False, 0)
@@ -299,7 +299,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         clear_button.set_image(
             Gtk.Image.new_from_icon_name("window-close-symbolic", Gtk.IconSize.BUTTON)
         )
-        clear_button.set_tooltip_text("Fechar a barra de downloads")
+        clear_button.set_tooltip_text("Close the downloads bar")
         clear_button.connect("clicked", lambda *_: self.download_revealer.set_reveal_child(False))
         header.pack_end(clear_button, False, False, 0)
         download_box.pack_start(header, False, False, 0)
@@ -309,7 +309,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         self.download_revealer.add(download_box)
         outer.pack_end(self.download_revealer, False, False, 0)
 
-        # Barra de status (destino de links) ---------------------------
+        # Status bar (link target) -------------------------------------
         self.status_label = Gtk.Label(label="")
         self.status_label.set_xalign(0)
         self.status_label.set_ellipsize(Pango.EllipsizeMode.END)
@@ -336,14 +336,14 @@ class BrowserWindow(Gtk.ApplicationWindow):
             entry.connect("activate", lambda *_: callback())
             menu.append(entry)
 
-        item("Novo separador (Ctrl+T)", lambda: self.new_tab())
-        item("Baixar vídeo/áudio desta página", self._download_current_page)
+        item("New tab (Ctrl+T)", lambda: self.new_tab())
+        item("Download video/audio from this page", self._download_current_page)
         item("Downloads (Ctrl+J)", self._show_downloads)
         menu.append(Gtk.SeparatorMenuItem())
-        item("Abrir pasta de downloads", self._open_download_folder)
+        item("Open downloads folder", self._open_download_folder)
         menu.append(Gtk.SeparatorMenuItem())
-        item("Sobre o FastSearchX", self._show_about)
-        item("Sair", lambda: self.get_application().quit())
+        item("About FastSearchX", self._show_about)
+        item("Quit", lambda: self.get_application().quit())
         menu.show_all()
         return menu
 
@@ -408,7 +408,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         close.set_image(
             Gtk.Image.new_from_icon_name("window-close-symbolic", Gtk.IconSize.MENU)
         )
-        close.set_tooltip_text("Fechar separador")
+        close.set_tooltip_text("Close tab")
         close.connect("clicked", lambda *_: self.close_tab(view))
         box.pack_end(close, False, False, 0)
         box.show_all()
@@ -437,7 +437,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         self._refresh_navigation()
 
     # ------------------------------------------------------------------
-    # Navegação
+    # Navigation
     # ------------------------------------------------------------------
     def open_url(self, url: str) -> None:
         target = normalize_input(url)
@@ -497,7 +497,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
             Gtk.IconSize.BUTTON,
         )
         self.security_icon.set_tooltip_text(
-            "Conexão segura (HTTPS)" if secure else "Site sem HTTPS"
+            "Secure connection (HTTPS)" if secure else "Site without HTTPS"
         )
 
     def _set_address(self, text: str) -> None:
@@ -593,7 +593,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         return True
 
     # ------------------------------------------------------------------
-    # Menu de contexto (botão direito)
+    # Context menu (right click)
     # ------------------------------------------------------------------
     def _on_context_menu(self, view: WebKit2.WebView, context_menu, event, hit_test) -> bool:
         self._context_actions = []
@@ -603,12 +603,12 @@ class BrowserWindow(Gtk.ApplicationWindow):
                 if uri:
                     self._append_menu_action(
                         context_menu,
-                        "Abrir link em nova aba",
+                        "Open link in a new tab",
                         lambda: self.new_tab(uri),
                     )
                     self._append_menu_action(
                         context_menu,
-                        "Baixar link com o FastSearchX",
+                        "Download link with FastSearchX",
                         lambda: self._request_download(uri),
                     )
             if hit_test.context_is_media():
@@ -616,7 +616,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
                 if uri:
                     self._append_menu_action(
                         context_menu,
-                        "Baixar mídia com o FastSearchX",
+                        "Download media with FastSearchX",
                         lambda: self._request_download(uri),
                     )
             if hit_test.context_is_image():
@@ -624,7 +624,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
                 if uri:
                     self._append_menu_action(
                         context_menu,
-                        "Salvar imagem",
+                        "Save image",
                         lambda: self._request_download(uri),
                     )
         except Exception:
@@ -636,7 +636,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
         action.connect("activate", lambda *_args: callback())
         item = WebKit2.ContextMenuItem.new_from_gaction(action, label, None)
         context_menu.append(item)
-        # Mantém a ação viva enquanto o menu existir.
+        # Keeps the action alive while the menu exists.
         self._context_actions.append(action)
 
     # ------------------------------------------------------------------
@@ -707,7 +707,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
                 entry.stable_ticks = 0
                 entry.last_bytes = received
 
-            # Tamanho desconhecido: considera concluído após 3 s sem crescer.
+            # Unknown size: consider it done after 3 s without growth.
             if progress is not None and progress < 0 and entry.stable_ticks >= 8:
                 self._mark_finished(entry)
 
@@ -722,12 +722,12 @@ class BrowserWindow(Gtk.ApplicationWindow):
         entry.progress.set_fraction(1.0)
         entry.progress.hide()
         label = entry.label.get_text().split(" — ")[0]
-        entry.label.set_text(f"{label} — concluído")
+        entry.label.set_text(f"{label} — done")
         entry.label.get_style_context().add_class("browser-download-done")
         entry.action.set_image(
             Gtk.Image.new_from_icon_name("folder-open-symbolic", Gtk.IconSize.BUTTON)
         )
-        entry.action.set_tooltip_text("Abrir a pasta do download")
+        entry.action.set_tooltip_text("Open the download folder")
         if getattr(entry, "cancel_handler", None):
             try:
                 entry.action.disconnect(entry.cancel_handler)
@@ -735,12 +735,12 @@ class BrowserWindow(Gtk.ApplicationWindow):
                 pass
             entry.cancel_handler = None
         entry.action.connect("clicked", lambda *_: self._open_folder(entry.path.parent))
-        self._notify("Download concluído", entry.path.name)
+        self._notify("Download finished", entry.path.name)
 
     def _mark_failed(self, entry: DownloadEntry) -> None:
         entry.failed = True
         entry.progress.hide()
-        entry.label.set_text(f"{entry.path.name} — falhou")
+        entry.label.set_text(f"{entry.path.name} — failed")
         entry.action.set_image(
             Gtk.Image.new_from_icon_name("window-close-symbolic", Gtk.IconSize.BUTTON)
         )
@@ -786,7 +786,7 @@ class BrowserWindow(Gtk.ApplicationWindow):
                 pass
 
     # ------------------------------------------------------------------
-    # Integração com o baixador
+    # Downloader integration
     # ------------------------------------------------------------------
     def _download_current_page(self, *_args) -> None:
         view = self.current_view()
