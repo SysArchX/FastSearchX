@@ -1,6 +1,6 @@
 # FastSearchX
 
-**Chrome-style browser + video (MP4), music (MP3) and file downloader — on Android and Linux.**
+**Chrome-style browser with a built-in downloader for video (MP4), music (MP3) and any file, on Android and Linux.**
 
 <p align="center">
   <img src="data/icons/fastsearchx-256.png" width="160" alt="FastSearchX icon">
@@ -22,10 +22,10 @@
 
 **FastSearchX** is a free browser with a built-in downloader. There are two versions:
 
-- **Android** — a full browser that can be set as your default browser, downloads
+- **Android**: a full browser that can be set as your default browser, downloads
   **any file** (including LocalSend links) and detects videos and audio from any
   site, including HLS/DASH streams.
-- **Linux (GTK 3)** — a Chrome-style **tabbed** browser (WebKit2GTK) with an
+- **Linux (GTK 3)**: a Chrome-style **tabbed** browser (WebKit2GTK) with an
   address bar, Google search, downloads and a button that downloads the page's
   video/audio with the bundled [yt-dlp](https://github.com/yt-dlp/yt-dlp). The
   link and playlist downloader is also in the menu.
@@ -36,7 +36,7 @@
   (`com.sysarchx.fastsearchx`). Uninstall TubeFetch 1.4.x before installing.
 - **Android: fixed the "there was a problem parsing the package" error.**
   1.4.1 packaged the native libraries compressed, so the installer had to extract
-  hundreds of MB during installation — which failed on many devices. 2.0.0 is
+  hundreds of MB during installation, which failed on many devices. 2.0.0 is
   back to the 1.2.0 packaging (uncompressed `.so`, `extractNativeLibs="false"`),
   which installs directly and only uses the APK size.
 - **Linux is now a real browser:** tabs, address bar with search,
@@ -50,7 +50,7 @@
 
 | Platform | Version | File | Requirements |
 | --- | :---: | --- | --- |
-| **Android** | 2.0.0 | [`FastSearchX-2.0.0-arm64-v8a.apk`](https://github.com/SysArchX/FastSearchX/releases/download/v2.0.0/FastSearchX-2.0.0-arm64-v8a.apk) (48.5 MB) | Android 7.0 (API 24)+, 64-bit phone — **recommended** |
+| **Android** | 2.0.0 | [`FastSearchX-2.0.0-arm64-v8a.apk`](https://github.com/SysArchX/FastSearchX/releases/download/v2.0.0/FastSearchX-2.0.0-arm64-v8a.apk) (48.5 MB) | Android 7.0 (API 24)+, 64-bit phone, recommended |
 | **Android** | 2.0.0 | [`FastSearchX-2.0.0-armeabi-v7a.apk`](https://github.com/SysArchX/FastSearchX/releases/download/v2.0.0/FastSearchX-2.0.0-armeabi-v7a.apk) (69.4 MB) | Android 7.0+, 32-bit device |
 | **Android** | 2.0.0 | [`FastSearchX-2.0.0-android.apk`](https://github.com/SysArchX/FastSearchX/releases/download/v2.0.0/FastSearchX-2.0.0-android.apk) (168 MB) | Android 7.0+, works on any device |
 | **Linux x86_64** | 2.0.1 | [`fastsearchx_2.0.1_amd64.deb`](https://github.com/SysArchX/FastSearchX/releases/download/v2.0.0/fastsearchx_2.0.1_amd64.deb) (2.9 MB) | Debian/Ubuntu with Python 3.11+, GTK 3, WebKit2GTK 4.1 and ffmpeg |
@@ -78,7 +78,7 @@ sha256sum -c SHA256SUMS
 
 ## Installing on Android
 
-1. Download the APK on your phone — prefer `FastSearchX-2.0.0-arm64-v8a.apk`.
+1. Download the APK on your phone, preferably `FastSearchX-2.0.0-arm64-v8a.apk`.
    Download it with **Chrome** or a download manager: in-app browsers inside
    messaging apps usually truncate large files.
 2. Open the file and allow installation from **unknown sources** for the
@@ -88,11 +88,11 @@ sha256sum -c SHA256SUMS
 
 If you see **"there was a problem parsing the package"**:
 
-- the download is incomplete — download it again and check `SHA256SUMS`;
-- the device runs Android 6.x or older — FastSearchX requires Android 7.0+;
-- an old TubeFetch build is installed — uninstall it first (the package changed
+- the download is incomplete: download it again and check `SHA256SUMS`;
+- the device runs Android 6.x or older. FastSearchX requires Android 7.0+;
+- an old TubeFetch build is installed. Uninstall it first (the package changed
   from `com.sysarchx.tubefetch` to `com.sysarchx.fastsearchx`);
-- the APK is for another architecture — try `FastSearchX-2.0.0-android.apk`.
+- the APK is for another architecture. Try `FastSearchX-2.0.0-android.apk`.
 
 You can also install it through ADB:
 
@@ -109,7 +109,7 @@ Certificate SHA-256: c4ff9e0318a5d17a15ed67d3d2025f7752ea97e06da61201dde5ef44f42
 
 > **Upgrading from an older version:** 2.0.0 changed the app ID to
 > `com.sysarchx.fastsearchx`. Uninstall **TubeFetch** (1.4.1 or older) before
-> installing — the app's history and preferences are lost, but files already
+> installing. The app's history and preferences are lost, but files already
 > downloaded stay in `Download/TubeFetch`.
 >
 > If you installed a **per-architecture** APK and later want to switch to the
@@ -155,7 +155,7 @@ file registers `x-scheme-handler/http` and `https`).
 > use the terminal.
 >
 > Version **2.0.1** of the `.deb` removed the post-installation scripts exactly
-> so it no longer depends on the graphical installer — icons and menu entries
+> so it no longer depends on the graphical installer. Icons and menu entries
 > are registered by the native `dpkg` triggers.
 
 To remove it:
@@ -181,17 +181,17 @@ sudo apt remove fastsearchx
 - Video/audio downloads from **any site**: MP4, WEBM, MKV, MP3, M4A, plus
   **HLS (`.m3u8`)** and **DASH (`.mpd`)** streams handled by FFmpeg.
 - **Page media** menu to pick the detected video or audio.
-- Downloads screen with **real-time progress**, size, speed and
-  cancellation — no endless spinner.
+- Downloads screen with **real-time progress**, size, speed and cancellation,
+  with no endless spinner.
 - Folders organised automatically:
-  - `Download/FastSearchX` — other files;
-  - `Download/FastSearchX/FastSearchX_videos` — videos;
-  - `Download/FastSearchX/FastSearchX_music` — music and audio.
+  - `Download/FastSearchX` for other files;
+  - `Download/FastSearchX/FastSearchX_videos` for videos;
+  - `Download/FastSearchX/FastSearchX_music` for music and audio.
 - Detection of a link copied to the clipboard.
 - Light, dark or system themes, with several accent colors.
 - Browsing and download history.
 
-### Linux — GTK 3 + WebKit2GTK (2.0.0)
+### Linux: GTK 3 + WebKit2GTK (2.0.0)
 
 - **Tabbed browser** in the Chrome style: address bar, back/forward,
   reload, home page, progress bar and shortcuts
